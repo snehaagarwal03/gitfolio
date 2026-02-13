@@ -1,16 +1,6 @@
-# React + Vite
+# GitFolio: An AI-Powered GitHub Portfolio and Resume Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+listen i will clear my project more now to you what exactly it is basically i want a user to come on my website then he can login through google sign up or make a account themselves or signup using github oauth then after successful login if the user has sign n using github oauth then automatically all his data is fetched and there will be a screen aslking generate your portfolio website and if user has not signed in using github oauth does not want to give access t private repos then after login he will be asled to enter his giuthub username and then generate portfolio website  and after the portfolio website is generated with url gitfolio.in/usrename then on screen user will have option to view in light and dark mode , change themes, add some sections like achievement education which will be fetched if the user will have a detailed profile readme but if he doesnt have then he can add that himself o the website page by adding the desired section the componet will be made for that after he completes adding the data and there will be also an option to generate resumes with help of all this data and after generating the resume one can edit the text size , font type , heading colors , text bold italic options ,text color, add hyperlinks , and an optiom to download resume in pdf format 
+so all this my website can do and this all is what i want right now
+later on there can be any additions but these are basics
+so now you just keep all this in your mind and the tech stack for this project is react js javascript taiwlindcss framer motion gemini api key for all ai related tasks and firebase auth and db and firebase in backend
