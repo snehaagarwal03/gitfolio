@@ -39,7 +39,7 @@ A developer signs in, connects their GitHub profile, and GitFolio automatically 
 
 ### Post-Login Routing
 
-```
+``` bash
 User logs in
     |
     +-- Signed in via GitHub OAuth?
@@ -59,7 +59,7 @@ User logs in
 
 ## Data Pipeline
 
-```
+``` bash
 GitHub REST API  --->  Raw Data (repos, profile, README, contributions)
        |
        v
@@ -169,7 +169,7 @@ The resume editor provides full control over styling:
 
 ## Page Structure
 
-```
+``` bash
 /                     --> Landing page (dark theme, modern design)
 /login                --> Authentication page (Google, Email, GitHub)
 /dashboard            --> Post-login: generate portfolio / enter GitHub username
@@ -206,11 +206,8 @@ The resume editor provides full control over styling:
 
 - GitHub avatar as profile picture
 - Custom domain support for portfolios
-- Analytics dashboard (portfolio views, resume downloads)
 - More resume templates
 - LinkedIn data import
 - Portfolio SEO optimization
 - Share portfolio on social media
 - Access to private repos data (with GitHub OAuth permissions)
-- Collaborative editing / team portfolios
-- Blog section auto-populated from dev.to / Hashnode
