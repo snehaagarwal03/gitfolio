@@ -37,14 +37,29 @@ export async function getPortfolio(userId) {
 
 /**
  * Get portfolio data by GitHub username (for public portfolio pages).
- * Uses a separate collection or query to look up by username.
+ * First looks up the userId from username mapping, then fetches the portfolio.
  * @param {string} username - GitHub username
  * @returns {Promise<Object|null>} Portfolio data or null if not found
  */
 export async function getPortfolioByUsername(username) {
-  const docRef = doc(db, "portfoliosByUsername", username.toLowerCase());
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? docSnap.data() : null;
+  // Step 1: Look up the userId from the username mapping
+  const mappingRef = doc(db, "portfoliosByUsername", username.toLowerCase());
+  const mappingSnap = await getDoc(mappingRef);
+
+  if (!mappingSnap.exists()) {
+    return null;
+  }
+
+  const { userId } = mappingSnap.data();
+  if (!userId) {
+    return null;
+  }
+
+  // Step 2: Fetch the actual portfolio data using the userId
+  const portfolioRef = doc(db, "portfolios", userId);
+  const portfolioSnap = await getDoc(portfolioRef);
+
+  return portfolioSnap.exists() ? portfolioSnap.data() : null;
 }
 
 /**

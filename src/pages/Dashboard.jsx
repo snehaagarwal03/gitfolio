@@ -31,7 +31,7 @@ const STEPS = [
 ];
 
 export default function Dashboard() {
-  const { user, isGithubAuth, logout } = useAuth();
+  const { user, isGithubAuth, githubAccessToken, logout } = useAuth();
   const [githubUsername, setGithubUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -65,11 +65,13 @@ export default function Dashboard() {
       }
 
       // Step 1: Fetch GitHub data in parallel
+      // Use OAuth token if available for higher rate limits (5,000 vs 60 per hour)
       setCurrentStep(0);
+      const apiToken = githubAccessToken || import.meta.env.VITE_GITHUB_TOKEN || null;
       const [profileData, repos, readmeContent] = await Promise.all([
-        fetchGitHubUser(username),
-        fetchGitHubRepos(username, 30),
-        fetchProfileReadme(username),
+        fetchGitHubUser(username, apiToken),
+        fetchGitHubRepos(username, 30, apiToken),
+        fetchProfileReadme(username, apiToken),
       ]);
 
       // Step 2: Process with Gemini AI in parallel

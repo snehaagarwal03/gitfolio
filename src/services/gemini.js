@@ -9,7 +9,7 @@ const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
  */
 async function callGemini(prompt) {
   const response = await fetch(
-    `${GEMINI_API_BASE}/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+    `${GEMINI_API_BASE}/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
