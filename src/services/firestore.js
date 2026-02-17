@@ -64,16 +64,40 @@ export async function getPortfolioByUsername(username) {
 
 /**
  * Save the username-to-userId mapping for public portfolio lookup.
+ * One portfolio per username - allows regeneration by same user, blocks others.
  * @param {string} username - GitHub username
  * @param {string} userId - Firebase Auth user ID
+ * @param {boolean} isRegeneration - Whether this is a regeneration request
+ * @throws {Error} If username is claimed by a different user
+ * @returns {Object} { isNew: boolean, isOwner: boolean }
  */
-export async function saveUsernameMapping(username, userId) {
+export async function saveUsernameMapping(username, userId, _isRegeneration = false) {
   const docRef = doc(db, "portfoliosByUsername", username.toLowerCase());
+  const existingMapping = await getDoc(docRef);
+
+  if (existingMapping.exists()) {
+    const existingUserId = existingMapping.data().userId;
+
+    // Different user trying to claim this username
+    if (existingUserId !== userId) {
+      throw new Error(
+        `The GitHub username "${username}" is already claimed by another user. ` +
+        `Each GitHub username can only be linked to one GitFolio account.`
+      );
+    }
+
+    // Same user - this is a regeneration
+    return { isNew: false, isOwner: true };
+  }
+
+  // New portfolio
   await setDoc(docRef, {
     userId,
     username,
     createdAt: serverTimestamp(),
   });
+
+  return { isNew: true, isOwner: true };
 }
 
 /**

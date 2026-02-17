@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,6 +8,8 @@ import {
   FaCheck,
   FaSpinner,
   FaExclamationCircle,
+  FaSync,
+  FaExternalLinkAlt,
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import Navbar from "../components/common/Navbar";
@@ -25,7 +27,7 @@ import {
   extractSkills,
   parseProfileReadme,
 } from "../services/gemini";
-import { savePortfolio, saveUsernameMapping } from "../services/firestore";
+import { savePortfolio, saveUsernameMapping, getPortfolio } from "../services/firestore";
 
 const STEPS = [
   { label: "Fetching GitHub profile", icon: FaGithub },
@@ -34,11 +36,13 @@ const STEPS = [
 ];
 
 export default function Dashboard() {
-  const { user, isGithubAuth, githubAccessToken, logout } = useAuth();
+  const { user, isGithubAuth, githubAccessToken } = useAuth();
   const [githubUsername, setGithubUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingPortfolio, setCheckingPortfolio] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState("");
+  const [existingPortfolio, setExistingPortfolio] = useState(null);
   const navigate = useNavigate();
 
   // Get display name or email prefix
@@ -51,20 +55,39 @@ export default function Dashboard() {
     ? user?.reloadUserInfo?.screenName || null
     : null;
 
-  async function handleGeneratePortfolio() {
+  // Check for existing portfolio on mount
+  useEffect(() => {
+    async function checkExistingPortfolio() {
+      if (user?.uid) {
+        try {
+          const portfolio = await getPortfolio(user.uid);
+          setExistingPortfolio(portfolio);
+        } catch (err) {
+          console.error("Error checking portfolio:", err);
+        } finally {
+          setCheckingPortfolio(false);
+        }
+      }
+    }
+    checkExistingPortfolio();
+  }, [user?.uid]);
+
+  async function handleGeneratePortfolio(isRegeneration = false) {
     try {
       setLoading(true);
       setError("");
       setCurrentStep(0);
 
-      // Determine username
+      // Determine username - use existing portfolio username for regeneration
       let username;
-      if (isGithubAuth) {
-        // GitHub username is in screenName (reloadUserInfo)
-        // displayName is the user's name (e.g., "John Doe"), NOT their username
+      if (isRegeneration && existingPortfolio?.username) {
+        // Regeneration: always use the existing portfolio's username
+        username = existingPortfolio.username;
+      } else if (isGithubAuth) {
+        // New portfolio via GitHub OAuth
         username =
           user.reloadUserInfo?.screenName ||
-          githubUsername.trim() || // fallback to manual input
+          githubUsername.trim() ||
           null;
 
         if (!username) {
@@ -73,12 +96,12 @@ export default function Dashboard() {
           return;
         }
       } else {
+        // New portfolio via manual entry
         username = githubUsername.trim();
         if (!username) return;
       }
 
       // Step 1: Fetch GitHub data in parallel
-      // Use OAuth token if available for higher rate limits (5,000 vs 60 per hour)
       setCurrentStep(0);
       const apiToken = githubAccessToken || import.meta.env.VITE_GITHUB_TOKEN || null;
       const [profileData, repos, readmeContent, events] = await Promise.all([
@@ -150,10 +173,12 @@ export default function Dashboard() {
         readmeSections: readmeSections || null,
       };
 
-      await Promise.all([
-        savePortfolio(user.uid, portfolioData),
-        saveUsernameMapping(username, user.uid),
-      ]);
+      // Check username ownership - allows regeneration for same user
+      await saveUsernameMapping(username, user.uid, isRegeneration);
+      await savePortfolio(user.uid, portfolioData);
+
+      // Update local state
+      setExistingPortfolio(portfolioData);
 
       // Done — navigate to the portfolio
       navigate(`/portfolio/${username}`);
@@ -164,6 +189,18 @@ export default function Dashboard() {
       setLoading(false);
       setCurrentStep(0);
     }
+  }
+
+  // Show loader while checking for existing portfolio
+  if (checkingPortfolio) {
+    return (
+      <div className="min-h-screen bg-surface-900">
+        <Navbar />
+        <main className="flex items-center justify-center px-6 pt-24">
+          <FaSpinner className="animate-spin text-2xl text-primary" />
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -186,9 +223,11 @@ export default function Dashboard() {
               Welcome, {displayName}!
             </h1>
             <p className="mt-1 text-text-secondary">
-              {isGithubAuth
-                ? "Your GitHub data is ready. Generate your portfolio!"
-                : "Enter your GitHub username to get started."}
+              {existingPortfolio
+                ? "Manage your portfolio or regenerate with fresh data."
+                : isGithubAuth
+                  ? "Your GitHub data is ready. Generate your portfolio!"
+                  : "Enter your GitHub username to get started."}
             </p>
           </div>
 
@@ -205,7 +244,7 @@ export default function Dashboard() {
                   className="space-y-4"
                 >
                   <p className="mb-6 text-center text-sm font-medium text-text-secondary">
-                    Building your portfolio...
+                    {existingPortfolio ? "Regenerating your portfolio..." : "Building your portfolio..."}
                   </p>
                   {STEPS.map((step, index) => {
                     const isCompleted = index < currentStep;
@@ -245,6 +284,42 @@ export default function Dashboard() {
                       </div>
                     );
                   })}
+                </motion.div>
+              ) : existingPortfolio ? (
+                /* Existing Portfolio - Show View/Regenerate options */
+                <motion.div
+                  key="existing"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-center"
+                >
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-success/10 px-4 py-2 text-sm text-success">
+                    <FaCheck />
+                    Portfolio Ready
+                  </div>
+                  <p className="mb-2 text-lg font-medium text-text-primary">
+                    @{existingPortfolio.username}
+                  </p>
+                  <p className="mb-6 text-sm text-text-secondary">
+                    Your portfolio is live and ready to share.
+                  </p>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <button
+                      onClick={() => navigate(`/portfolio/${existingPortfolio.username}`)}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-dark"
+                    >
+                      <FaExternalLinkAlt />
+                      View Portfolio
+                    </button>
+                    <button
+                      onClick={() => handleGeneratePortfolio(true)}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-surface-500 bg-surface-700 px-6 py-3 font-semibold text-text-primary transition-colors hover:bg-surface-600"
+                    >
+                      <FaSync />
+                      Regenerate
+                    </button>
+                  </div>
                 </motion.div>
               ) : isGithubAuth ? (
                 /* GitHub OAuth user - auto flow */
@@ -292,7 +367,7 @@ export default function Dashboard() {
                     </>
                   )}
                   <button
-                    onClick={handleGeneratePortfolio}
+                    onClick={() => handleGeneratePortfolio(false)}
                     disabled={loading || (isGithubAuth && !githubUsernameFromAuth && !githubUsername.trim())}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
                   >
@@ -327,7 +402,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <button
-                    onClick={handleGeneratePortfolio}
+                    onClick={() => handleGeneratePortfolio(false)}
                     disabled={loading || !githubUsername.trim()}
                     className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3 font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
                   >
