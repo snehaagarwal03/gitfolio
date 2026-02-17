@@ -15,6 +15,9 @@ import {
   fetchGitHubUser,
   fetchGitHubRepos,
   fetchProfileReadme,
+  calculateMostUsedLanguages,
+  fetchUserEvents,
+  calculateContributionActivity,
 } from "../services/github";
 import {
   generateBio,
@@ -43,6 +46,11 @@ export default function Dashboard() {
     user?.displayName || user?.email?.split("@")[0] || "User";
   const firstLetter = displayName.charAt(0).toUpperCase();
 
+  // Get GitHub username for OAuth users
+  const githubUsernameFromAuth = isGithubAuth
+    ? user?.reloadUserInfo?.screenName || null
+    : null;
+
   async function handleGeneratePortfolio() {
     try {
       setLoading(true);
@@ -52,13 +60,18 @@ export default function Dashboard() {
       // Determine username
       let username;
       if (isGithubAuth) {
-        const githubProfile = user.providerData.find(
-          (p) => p.providerId === "github.com"
-        );
+        // GitHub username is in screenName (reloadUserInfo)
+        // displayName is the user's name (e.g., "John Doe"), NOT their username
         username =
-          githubProfile?.displayName ||
           user.reloadUserInfo?.screenName ||
-          displayName;
+          githubUsername.trim() || // fallback to manual input
+          null;
+
+        if (!username) {
+          setError("Could not determine your GitHub username. Please enter it manually above.");
+          setLoading(false);
+          return;
+        }
       } else {
         username = githubUsername.trim();
         if (!username) return;
@@ -68,10 +81,17 @@ export default function Dashboard() {
       // Use OAuth token if available for higher rate limits (5,000 vs 60 per hour)
       setCurrentStep(0);
       const apiToken = githubAccessToken || import.meta.env.VITE_GITHUB_TOKEN || null;
-      const [profileData, repos, readmeContent] = await Promise.all([
+      const [profileData, repos, readmeContent, events] = await Promise.all([
         fetchGitHubUser(username, apiToken),
         fetchGitHubRepos(username, 30, apiToken),
         fetchProfileReadme(username, apiToken),
+        fetchUserEvents(username, apiToken),
+      ]);
+
+      // Calculate languages and contributions
+      const [languages, contributionActivity] = await Promise.all([
+        calculateMostUsedLanguages(repos, apiToken),
+        Promise.resolve(calculateContributionActivity(events)),
       ]);
 
       // Step 2: Process with Gemini AI in parallel
@@ -114,6 +134,8 @@ export default function Dashboard() {
         twitterUsername: profileData.twitter_username || null,
         skills,
         projects,
+        languages,
+        contributions: contributionActivity,
         stats: {
           repos: profileData.public_repos,
           stars: repos.reduce(
@@ -122,6 +144,8 @@ export default function Dashboard() {
           ),
           followers: profileData.followers,
           following: profileData.following,
+          totalContributions: contributionActivity.totalRecent,
+          currentStreak: contributionActivity.streakDays,
         },
         readmeSections: readmeSections || null,
       };
@@ -235,13 +259,41 @@ export default function Dashboard() {
                     <FaGithub />
                     GitHub connected
                   </div>
-                  <p className="mb-6 text-sm text-text-secondary">
-                    We&apos;ll fetch your repositories, profile, and
-                    contribution data to build your portfolio.
-                  </p>
+                  {githubUsernameFromAuth ? (
+                    <>
+                      <p className="mb-2 text-lg font-medium text-text-primary">
+                        @{githubUsernameFromAuth}
+                      </p>
+                      <p className="mb-6 text-sm text-text-secondary">
+                        We&apos;ll fetch your repositories, profile, and
+                        contribution data to build your portfolio.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-4 text-sm text-text-secondary">
+                        Enter your GitHub username to continue:
+                      </p>
+                      <div className="mb-6 flex gap-3">
+                        <div className="relative flex-1">
+                          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                          <input
+                            type="text"
+                            value={githubUsername}
+                            onChange={(e) => setGithubUsername(e.target.value)}
+                            placeholder="e.g. octocat"
+                            className="w-full rounded-lg border border-surface-500 bg-surface-700 py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-primary"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleGeneratePortfolio();
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <button
                     onClick={handleGeneratePortfolio}
-                    disabled={loading}
+                    disabled={loading || (isGithubAuth && !githubUsernameFromAuth && !githubUsername.trim())}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
                   >
                     <FaRocket />

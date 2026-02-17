@@ -23,7 +23,10 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authProvider, setAuthProvider] = useState(null); // "github" | "google" | "email"
-  const [githubAccessToken, setGithubAccessToken] = useState(null);
+  const [githubAccessToken, setGithubAccessToken] = useState(() => {
+    // Restore token from sessionStorage on initial load
+    return sessionStorage.getItem("githubAccessToken") || null;
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -45,6 +48,7 @@ export function AuthProvider({ children }) {
       } else {
         setAuthProvider(null);
         setGithubAccessToken(null);
+        sessionStorage.removeItem("githubAccessToken");
       }
 
       setLoading(false);
@@ -67,6 +71,8 @@ export function AuthProvider({ children }) {
     const credential = result._tokenResponse;
     if (credential?.oauthAccessToken) {
       setGithubAccessToken(credential.oauthAccessToken);
+      // Persist token in sessionStorage for page refreshes
+      sessionStorage.setItem("githubAccessToken", credential.oauthAccessToken);
     }
     setAuthProvider("github");
     return result;
@@ -94,6 +100,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setAuthProvider(null);
     setGithubAccessToken(null);
+    sessionStorage.removeItem("githubAccessToken");
   }
 
   const value = {

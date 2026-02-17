@@ -14,8 +14,11 @@ import {
   FaLink,
   FaTwitter,
   FaBuilding,
+  FaFire,
+  FaCode,
 } from "react-icons/fa";
 import { getPortfolioByUsername } from "../services/firestore";
+import { LANGUAGE_COLORS } from "../services/github";
 import Loader from "../components/common/Loader";
 
 export default function Portfolio() {
@@ -100,6 +103,8 @@ export default function Portfolio() {
     twitterUsername,
     skills = [],
     projects = [],
+    languages = [],
+    contributions = {},
     stats = {},
     readmeSections,
   } = portfolio;
@@ -209,6 +214,207 @@ export default function Portfolio() {
                 </motion.span>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Most Used Languages Section - GitHub Style */}
+      {languages.length > 0 && (
+        <section className="px-6 py-16">
+          <div className="mx-auto max-w-4xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className={`rounded-xl border p-6 ${
+                isDark
+                  ? "border-surface-600 bg-surface-800"
+                  : "border-gray-200 bg-white shadow-sm"
+              }`}
+            >
+              <div className="mb-4 flex items-center gap-2">
+                <FaCode className={isDark ? "text-text-secondary" : "text-gray-500"} />
+                <h2 className="text-lg font-semibold">Languages</h2>
+              </div>
+
+              {/* GitHub-style horizontal stacked bar */}
+              <div className="mb-4 flex h-4 w-full overflow-hidden rounded-full">
+                {languages.slice(0, 8).map((lang) => (
+                  <div
+                    key={lang.language}
+                    className="h-full transition-all hover:opacity-80"
+                    style={{
+                      width: `${lang.percentage}%`,
+                      backgroundColor:
+                        LANGUAGE_COLORS[lang.language] || LANGUAGE_COLORS.default,
+                    }}
+                    title={`${lang.language}: ${lang.percentage}%`}
+                  />
+                ))}
+              </div>
+
+              {/* Language legend in a flex wrap */}
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {languages.slice(0, 8).map((lang) => (
+                  <div key={lang.language} className="flex items-center gap-2">
+                    <span
+                      className="h-3 w-3 rounded-full"
+                      style={{
+                        backgroundColor:
+                          LANGUAGE_COLORS[lang.language] || LANGUAGE_COLORS.default,
+                      }}
+                    />
+                    <span
+                      className={`text-sm ${
+                        isDark ? "text-text-primary" : "text-gray-800"
+                      }`}
+                    >
+                      {lang.language}
+                    </span>
+                    <span
+                      className={`text-xs ${
+                        isDark ? "text-text-muted" : "text-gray-500"
+                      }`}
+                    >
+                      {lang.percentage}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* Contribution Activity Section - GitHub Style Grid */}
+      {(contributions.totalRecent > 0 || stats.currentStreak > 0) && (
+        <section className="px-6 py-16">
+          <div className="mx-auto max-w-4xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className={`rounded-xl border p-6 ${
+                isDark
+                  ? "border-surface-600 bg-surface-800"
+                  : "border-gray-200 bg-white shadow-sm"
+              }`}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FaFire className="text-orange-500" />
+                  <h2 className="text-lg font-semibold">
+                    {contributions.totalRecent || 0} contributions in the last month
+                  </h2>
+                </div>
+                {stats.currentStreak > 0 && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <FaFire className="text-orange-500" />
+                    <span className="font-semibold text-orange-500">
+                      {stats.currentStreak} day streak
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* GitHub-style contribution grid */}
+              {contributions.contributionsByDate && (
+                <div className="overflow-x-auto">
+                  <div className="inline-block">
+                    {/* Month labels */}
+                    <div
+                      className={`mb-1 ml-8 flex text-xs ${
+                        isDark ? "text-text-muted" : "text-gray-500"
+                      }`}
+                    >
+                      {(() => {
+                        const weeks = 5;
+                        const months = [];
+                        const today = new Date();
+                        for (let w = 0; w < weeks; w++) {
+                          const weekStart = new Date(today);
+                          weekStart.setDate(weekStart.getDate() - (weeks - 1 - w) * 7);
+                          const monthName = weekStart.toLocaleDateString("en", { month: "short" });
+                          if (w === 0 || months[months.length - 1]?.month !== monthName) {
+                            months.push({ month: monthName, week: w });
+                          }
+                        }
+                        return months.map((m, i) => (
+                          <span
+                            key={i}
+                            style={{ marginLeft: i === 0 ? `${m.week * 20}px` : `${(m.week - months[i-1]?.week - 1) * 20}px` }}
+                            className="w-20"
+                          >
+                            {m.month}
+                          </span>
+                        ));
+                      })()}
+                    </div>
+
+                    <div className="flex gap-1">
+                      {/* Day labels */}
+                      <div
+                        className={`flex flex-col gap-1 text-xs ${
+                          isDark ? "text-text-muted" : "text-gray-500"
+                        }`}
+                      >
+                        <span className="h-3 leading-3">Mon</span>
+                        <span className="h-3 leading-3">Wed</span>
+                        <span className="h-3 leading-3">Fri</span>
+                      </div>
+
+                      {/* Contribution grid */}
+                      <div className="flex gap-[3px]">
+                        {Array.from({ length: 5 }).map((_, weekIndex) => (
+                          <div key={weekIndex} className="flex flex-col gap-[3px]">
+                            {Array.from({ length: 7 }).map((_, dayIndex) => {
+                              const date = new Date();
+                              const daysAgo = (4 - weekIndex) * 7 + (6 - dayIndex);
+                              date.setDate(date.getDate() - daysAgo);
+                              const dateStr = date.toISOString().split("T")[0];
+                              const count = contributions.contributionsByDate[dateStr] || 0;
+
+                              const getColor = () => {
+                                if (count === 0) return isDark ? "bg-[#161b22]" : "bg-[#ebedf0]";
+                                if (count < 3) return "bg-[#9be9a8]";
+                                if (count < 6) return "bg-[#40c463]";
+                                if (count < 10) return "bg-[#30a14e]";
+                                return "bg-[#216e39]";
+                              };
+
+                              return (
+                                <div
+                                  key={dayIndex}
+                                  className={`h-3 w-3 rounded-[2px] ${getColor()} cursor-pointer transition-transform hover:ring-1 hover:ring-white/50`}
+                                  title={`${dateStr}: ${count} contribution${count !== 1 ? "s" : ""}`}
+                                />
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Legend */}
+                    <div
+                      className={`mt-3 flex items-center justify-end gap-2 text-xs ${
+                        isDark ? "text-text-muted" : "text-gray-500"
+                      }`}
+                    >
+                      <span>Less</span>
+                      <div className="flex gap-1">
+                        <div className={`h-3 w-3 rounded-[2px] ${isDark ? "bg-[#161b22]" : "bg-[#ebedf0]"}`} />
+                        <div className="h-3 w-3 rounded-[2px] bg-[#9be9a8]" />
+                        <div className="h-3 w-3 rounded-[2px] bg-[#40c463]" />
+                        <div className="h-3 w-3 rounded-[2px] bg-[#30a14e]" />
+                        <div className="h-3 w-3 rounded-[2px] bg-[#216e39]" />
+                      </div>
+                      <span>More</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
         </section>
       )}

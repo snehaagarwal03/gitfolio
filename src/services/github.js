@@ -186,3 +186,168 @@ export async function checkRateLimit(token = null) {
   }
   return response.json();
 }
+
+/**
+ * Fetch languages used in a specific repository.
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {string} [token] - Optional GitHub access token
+ * @returns {Promise<Object>} Object with language names as keys and bytes as values
+ */
+export async function fetchRepoLanguages(owner, repo, token = null) {
+  try {
+    const response = await fetch(
+      `${GITHUB_API_BASE}/repos/${owner}/${repo}/languages`,
+      { headers: buildHeaders(token) }
+    );
+    if (!response.ok) return {};
+    return response.json();
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Calculate most used languages across all repositories.
+ * @param {Array} repos - Array of repository objects
+ * @param {string} [token] - Optional GitHub access token
+ * @returns {Promise<Array>} Array of { language, percentage, bytes } sorted by usage
+ */
+export async function calculateMostUsedLanguages(repos, token = null) {
+  const languageBytes = {};
+
+  // Fetch languages for each repo (limit to top 20 repos for performance)
+  const topRepos = repos.slice(0, 20);
+  const languagePromises = topRepos.map(async (repo) => {
+    if (repo.owner?.login && repo.name) {
+      const languages = await fetchRepoLanguages(repo.owner.login, repo.name, token);
+      return languages;
+    }
+    return {};
+  });
+
+  const allLanguages = await Promise.all(languagePromises);
+
+  // Aggregate language bytes
+  allLanguages.forEach((languages) => {
+    Object.entries(languages).forEach(([lang, bytes]) => {
+      languageBytes[lang] = (languageBytes[lang] || 0) + bytes;
+    });
+  });
+
+  // Calculate total bytes
+  const totalBytes = Object.values(languageBytes).reduce((sum, bytes) => sum + bytes, 0);
+  if (totalBytes === 0) return [];
+
+  // Convert to array and calculate percentages
+  const languageStats = Object.entries(languageBytes)
+    .map(([language, bytes]) => ({
+      language,
+      bytes,
+      percentage: Math.round((bytes / totalBytes) * 100 * 10) / 10, // Round to 1 decimal
+    }))
+    .sort((a, b) => b.bytes - a.bytes)
+    .slice(0, 10); // Top 10 languages
+
+  return languageStats;
+}
+
+/**
+ * Fetch recent user events/activity for contribution visualization.
+ * @param {string} username - GitHub username
+ * @param {string} [token] - Optional GitHub access token
+ * @returns {Promise<Array>} Array of event objects
+ */
+export async function fetchUserEvents(username, token = null) {
+  try {
+    const response = await fetch(
+      `${GITHUB_API_BASE}/users/${username}/events/public?per_page=100`,
+      { headers: buildHeaders(token) }
+    );
+    if (!response.ok) return [];
+    return response.json();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Calculate contribution activity from events.
+ * @param {Array} events - Array of event objects
+ * @returns {Object} Contribution data { contributionsByDate, totalRecent, streakDays }
+ */
+export function calculateContributionActivity(events) {
+  const contributionsByDate = {};
+  const eventTypes = [
+    "PushEvent",
+    "PullRequestEvent",
+    "IssuesEvent",
+    "IssueCommentEvent",
+    "CreateEvent",
+    "ReleaseEvent",
+  ];
+
+  events.forEach((event) => {
+    if (eventTypes.includes(event.type)) {
+      const date = event.created_at?.split("T")[0];
+      if (date) {
+        contributionsByDate[date] = (contributionsByDate[date] || 0) + 1;
+      }
+    }
+  });
+
+  // Calculate total recent contributions
+  const totalRecent = Object.values(contributionsByDate).reduce((sum, count) => sum + count, 0);
+
+  // Calculate streak (consecutive days)
+  const sortedDates = Object.keys(contributionsByDate).sort().reverse();
+  let streakDays = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (let i = 0; i < sortedDates.length; i++) {
+    const expectedDate = new Date(today);
+    expectedDate.setDate(expectedDate.getDate() - i);
+    const expectedDateStr = expectedDate.toISOString().split("T")[0];
+
+    if (contributionsByDate[expectedDateStr]) {
+      streakDays++;
+    } else if (i > 0) {
+      // Allow one day gap, but break on second gap
+      break;
+    }
+  }
+
+  return {
+    contributionsByDate,
+    totalRecent,
+    streakDays,
+  };
+}
+
+// Language colors for visualization
+export const LANGUAGE_COLORS = {
+  JavaScript: "#f1e05a",
+  TypeScript: "#3178c6",
+  Python: "#3572A5",
+  Java: "#b07219",
+  "C++": "#f34b7d",
+  C: "#555555",
+  "C#": "#239120",
+  Go: "#00ADD8",
+  Rust: "#dea584",
+  Ruby: "#701516",
+  PHP: "#4F5D95",
+  Swift: "#F05138",
+  Kotlin: "#A97BFF",
+  Dart: "#00B4AB",
+  Scala: "#c22d40",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  SCSS: "#c6538c",
+  Shell: "#89e051",
+  Vue: "#41b883",
+  Svelte: "#ff3e00",
+  React: "#61dafb",
+  default: "#8b949e",
+};
