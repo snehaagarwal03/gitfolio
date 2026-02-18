@@ -18,7 +18,7 @@
 4. Click Register app
 5. You'll see the Firebase config object -- copy these values:
 
-```
+``` bash
 apiKey: "AIza..."
 authDomain: "your-project.firebaseapp.com"
 projectId: "your-project-id"
@@ -37,7 +37,7 @@ cp .env.example .env
 
 Then edit `.env`:
 
-```
+``` bash
 VITE_FIREBASE_API_KEY=AIzaSy...
 VITE_FIREBASE_AUTH_DOMAIN=gitfolio-xxxxx.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=gitfolio-xxxxx
@@ -98,7 +98,7 @@ In Firebase Console -> **Authentication** -> **Sign-in method** tab:
 6. Copy the API key
 7. Add it to your `.env`:
 
-```
+``` bash
 VITE_GEMINI_API_KEY=AIzaSy...your_gemini_key
 ```
 
@@ -106,7 +106,7 @@ VITE_GEMINI_API_KEY=AIzaSy...your_gemini_key
 
 ## 3. Final `.env` file should look like
 
-```
+``` bash
 VITE_FIREBASE_API_KEY=AIzaSy...
 VITE_FIREBASE_AUTH_DOMAIN=gitfolio-xxxxx.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=gitfolio-xxxxx

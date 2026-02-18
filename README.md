@@ -11,3 +11,7 @@ for tech stack for this project is react js javascript taiwlindcss framer motion
 - user has the option to add any section as you know as discussed
 - also the light and dark theme option is on portfolio page and on resume page but on resume page the paper on which resume is will be white only and pdf generated also on white paper
 - the original webste of gitfolio follows dark theme only modern design
+
+## some important points
+
+- update route switching
