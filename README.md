@@ -5,13 +5,18 @@ so all this my website can do and this all is what i want right now
 later on there can be any additions but these are basics
 for tech stack for this project is react js javascript taiwlindcss framer motion gemini api key for all ai related tasks and firebase auth and firestore db and firebase in backend and vercel for deployment
 
-- user image will be te first letter of their name for now
+- user image is basicaaly first letter of name right now
 - its a developer focused portfolio and resume generator
 - flow is user is logging in then all the data that can be fetched from github rest api is fetched according to the need of the project and then it is parsed to gemini api and then the data is stored in firestore db and then the portfolio is shown on ui
 - user has the option to add any section as you know as discussed
-- also the light and dark theme option is on portfolio page and on resume page but on resume page the paper on which resume is will be white only and pdf generated also on white paper
-- the original webste of gitfolio follows dark theme only modern design
+- also the light and dark theme option is on portfolio page only and the rest of the website follows dark theme only modern design and on resume page only the paper is white
 
 ## some important points
 
-- update route switching
+- one user can generate one portfolio only (this is the limit) and then below genarte portfolio button there will be a div with user image on left of div and on right side of div there will be username and below will be bio basically a short div representing a users identity and below that will be a regenerate portfolio button which user can use to refresh or regenerate the already generated portfolio for updated data from his github like if there are some new repos and new contributions , updated profile readme so that data can be used to make a updated portfolio website - but on updation the same firestore document will be updated thatw as created for that user and the same portfolio website will be updated with new data
+- now also check that if a user has created a portfolio with some username and then another user cant create with that same username , show a eroor that portfolio exists for this username basically firestore will have unique usernames only
+- and once user has created his portfolio he can only regenearte or update it no new portfolio creation
+- discuss on if the user has updated his username on github then how to handle that case because the portfolio website is generated with username in url so if user has updated his username on github then the portfolio website url will also be updated with new username and the old url will not work so we have to handle this case as well because we are not allowing user to create more than one portfolio but to get the portfolio now he will have to chnage the username as his username is changed on github and our website geneartes portfolio based on username only so need to figure out how to handle this case
+-also ensure route switching if the suer is authenticated then he cannot navigate to login screen or main landing page of website , dashboard will be default route and ensure navbar logo link also follows same route switching logic
+- also one more thing when after portfolio generation user lands on portfolio page then that route should be like gitfolio.in/username
+and not gitfolio.in/dashboard/username because it is more clean and also if user tries to access gitfolio.in/username without authentication then it should show 404 page not found because only authenticated users can have portfolio websites and also if user tries to access gitfolio.in/username which is not his username then also it should show 404 page not found because user can only access his own portfolio website and not others
