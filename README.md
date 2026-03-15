@@ -25,3 +25,11 @@ But now i want to give user a feature like obviously he will want to access the 
 - also i need to figure out one more thing like right now i am sending very much data from github api to gemini api as a particular user can have 150+ repos and all the repo data is sent to gemini api which increases the input tokens and if i dont send all the repos then it wil be difficult to estimate the skills of user and create proper description and exact portfolio that he desires so what can i do in this situation i need to figure out and also want to know what is the limit of input and output token limits in free plan of gemini api key usage and if there is any other rate limitation also and which model should i use in free plan of gemini api key which is suitable for my task and purpose
 and even after optimising if the limits hit when lets say 5 users try to create a portfolio through my webiste simultaneously and all have atleast 60+ repos then can the limit be hit
 my idea and concern is this only that whatever the possible scenarios are that can be there like limit or api key can be exhausted, etc so, i need to cater all of them in best possible way and if that can be done freely by using free gemini api key then well and good but if not then suggest me best alternatives free and paid both
+
+these docs are very important to understand about github apis
+1. github rest api - https://docs.github.com/en/rest?apiVersion=2026-03-10
+2. github graphql api - https://docs.github.com/en/graphql
+
+as i want to know which api is better for my use case as i am not sure which to use and about their rate limits and understanding of that
+
+github oauth and github pat both are used in my project and i want to know their relation with both of these apis 
