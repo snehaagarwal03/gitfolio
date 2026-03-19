@@ -27,9 +27,10 @@ and even after optimising if the limits hit when lets say 5 users try to create 
 my idea and concern is this only that whatever the possible scenarios are that can be there like limit or api key can be exhausted, etc so, i need to cater all of them in best possible way and if that can be done freely by using free gemini api key then well and good but if not then suggest me best alternatives free and paid both
 
 these docs are very important to understand about github apis
-1. github rest api - https://docs.github.com/en/rest?apiVersion=2026-03-10
+
+1. github rest api - "https://docs.github.com/en/rest?apiVersion=2026-03-10"
 2. github graphql api - https://docs.github.com/en/graphql
 
 as i want to know which api is better for my use case as i am not sure which to use and about their rate limits and understanding of that
 
-github oauth and github pat both are used in my project and i want to know their relation with both of these apis 
+github oauth and github pat both are used in my project and i want to know their relation with both of these apis
