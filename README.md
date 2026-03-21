@@ -28,8 +28,8 @@ my idea and concern is this only that whatever the possible scenarios are that c
 
 these docs are very important to understand about github apis
 
-1. github rest api - "https://docs.github.com/en/rest?apiVersion=2026-03-10"
-2. github graphql api - https://docs.github.com/en/graphql
+1. github rest api - <https://docs.github.com/en/rest?apiVersion=2026-03-10>
+2. github graphql api - <https://docs.github.com/en/graphql>
 
 as i want to know which api is better for my use case as i am not sure which to use and about their rate limits and understanding of that
 
