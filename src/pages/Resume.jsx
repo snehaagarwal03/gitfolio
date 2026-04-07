@@ -10,7 +10,6 @@ import {
   FaAlignRight,
   FaLink,
   FaExternalLinkAlt,
-  FaCommentAlt,
   FaCircle,
   FaRocket,
 } from "react-icons/fa";
@@ -19,13 +18,26 @@ import Loader from "../components/common/Loader";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
 import { getPortfolio } from "../services/firestore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../components/ui/dialog";
+import { Input } from "../components/ui/input";
 
 export default function Resume() {
   const { user } = useAuth();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fontSize, setFontSize] = useState(13); // base font size in px
   const resumeRef = useRef(null);
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [savedSelection, setSavedSelection] = useState(null);
+  
+  // Track font size without triggering React re-renders which wipe the contentEditable
+  const currentFontSize = useRef(13);
 
   useEffect(() => {
     async function loadData() {
@@ -52,11 +64,37 @@ export default function Resume() {
   }
 
   function increaseFontSize() {
-    setFontSize((prev) => Math.min(prev + 1, 18));
+    if (!resumeRef.current) return;
+    currentFontSize.current = Math.min(currentFontSize.current + 1, 18);
+    resumeRef.current.style.fontSize = `${currentFontSize.current}px`;
   }
 
   function decreaseFontSize() {
-    setFontSize((prev) => Math.max(prev - 1, 9));
+    if (!resumeRef.current) return;
+    currentFontSize.current = Math.max(currentFontSize.current - 1, 9);
+    resumeRef.current.style.fontSize = `${currentFontSize.current}px`;
+  }
+
+
+  function openLinkModal() {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      setSavedSelection(selection.getRangeAt(0));
+    } else {
+      setSavedSelection(null);
+    }
+    setLinkUrl("");
+    setLinkModalOpen(true);
+  }
+
+  function handleInsertLink() {
+    if (savedSelection) {
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(savedSelection);
+    }
+    document.execCommand("createLink", false, linkUrl);
+    setLinkModalOpen(false);
   }
 
   if (loading) {
@@ -130,7 +168,7 @@ export default function Resume() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="resume-paper mx-auto bg-white rounded-lg shadow-2xl relative overflow-hidden ring-1 ring-border"
-              style={{ minHeight: "1056px", padding: "48px 56px", fontSize: `${fontSize}px` }}
+              style={{ minHeight: "1056px", padding: "48px 56px", fontSize: `${currentFontSize.current}px` }}
               contentEditable
               suppressContentEditableWarning
             >
@@ -413,13 +451,7 @@ export default function Resume() {
             <div className="mx-1 h-5 w-px bg-border" />
 
             {/* Actions */}
-            <button
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1.5 text-xs"
-              title="Comment"
-            >
-              <FaCommentAlt size={13} />
-              <span className="hidden sm:inline">Comment</span>
-            </button>
+
             <button
               onClick={handleDownloadPDF}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
@@ -428,10 +460,7 @@ export default function Resume() {
               <FaExternalLinkAlt size={13} />
             </button>
             <button
-              onClick={() => {
-                const url = prompt("Enter URL:");
-                if (url) handleExecCommand("createLink", url);
-              }}
+              onClick={openLinkModal}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               title="Insert Link"
             >
@@ -440,6 +469,30 @@ export default function Resume() {
           </motion.div>
         </div>
       </div>
+
+      <Dialog open={linkModalOpen} onOpenChange={setLinkModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert Link</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              type="url"
+              placeholder="https://example.com"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleInsertLink();
+              }}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleInsertLink}>Insert</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

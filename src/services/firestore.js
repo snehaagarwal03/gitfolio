@@ -4,6 +4,10 @@ import {
   setDoc,
   updateDoc,
   serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -36,15 +40,23 @@ export async function getPortfolio(userId) {
 }
 
 /**
- * Get portfolio data by GitHub username (for public portfolio pages).
- * First looks up the userId from username mapping, then fetches the portfolio.
- * @param {string} username - GitHub username
+ * Get portfolio data by GitHub username or custom URL mapping.
+ * First looks up the userId from mapping, then fetches the portfolio.
+ * @param {string} usernameOrCustomUrl - GitHub username or custom URL
  * @returns {Promise<Object|null>} Portfolio data or null if not found
  */
-export async function getPortfolioByUsername(username) {
-  // Step 1: Look up the userId from the username mapping
-  const mappingRef = doc(db, "portfoliosByUsername", username.toLowerCase());
-  const mappingSnap = await getDoc(mappingRef);
+export async function getPortfolioByUsername(usernameOrCustomUrl) {
+  const key = usernameOrCustomUrl.toLowerCase();
+  
+  // Step 1: Look up by custom URL alias first
+  let mappingRef = doc(db, "portfoliosByCustomUrl", key);
+  let mappingSnap = await getDoc(mappingRef);
+
+  // Step 2: If not found, look up by GitHub username alias
+  if (!mappingSnap.exists()) {
+    mappingRef = doc(db, "portfoliosByUsername", key);
+    mappingSnap = await getDoc(mappingRef);
+  }
 
   if (!mappingSnap.exists()) {
     return null;
@@ -55,11 +67,36 @@ export async function getPortfolioByUsername(username) {
     return null;
   }
 
-  // Step 2: Fetch the actual portfolio data using the userId
+  // Step 3: Fetch the actual portfolio data using the userId
   const portfolioRef = doc(db, "portfolios", userId);
   const portfolioSnap = await getDoc(portfolioRef);
 
   return portfolioSnap.exists() ? portfolioSnap.data() : null;
+}
+
+/**
+ * Save a custom URL mapping for a user.
+ * @param {string} customUrl - The custom URL slug chosen by the user
+ * @param {string} userId - Firebase Auth user ID
+ */
+export async function saveCustomUrlMapping(customUrl, userId) {
+  const key = customUrl.toLowerCase();
+  const docRef = doc(db, "portfoliosByCustomUrl", key);
+  const existingMapping = await getDoc(docRef);
+
+  if (existingMapping.exists() && existingMapping.data().userId !== userId) {
+    throw new Error("This custom URL is already taken by another user.");
+  }
+
+  // Also store it on the user's main portfolio document for quick reference
+  const portfolioRef = doc(db, "portfolios", userId);
+  await setDoc(portfolioRef, { customUrl: key }, { merge: true });
+
+  await setDoc(docRef, {
+    userId,
+    customUrl: key,
+    createdAt: serverTimestamp(),
+  });
 }
 
 /**
