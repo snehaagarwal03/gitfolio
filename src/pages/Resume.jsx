@@ -326,30 +326,90 @@ export default function Resume() {
                     </h3>
                     <div className="space-y-3">
                       {readmeSections?.detailedProjects?.length > 0 ? (
-                        // Render detailed projects from AI deep parse
-                        readmeSections.detailedProjects.slice(0, 4).map((project, idx) => (
-                           <div key={idx} className="text-xs text-gray-700">
-                             <h4 className="font-bold text-[#0ea5e9]">
-                               {project.name || project.title || "Project"}
-                             </h4>
-                             {project.description && (
-                               <ul className="list-[circle] ml-5 mt-1 space-y-0.5">
-                                 {(Array.isArray(project.description) ? project.description : [project.description]).map((d, j) => (
-                                   <li key={j}>{d}</li>
-                                 ))}
-                               </ul>
-                             )}
-                           </div>
-                        ))
+                        // Render detailed projects from AI deep parse (with links from portfolio.projects as reference)
+                        readmeSections.detailedProjects.slice(0, 5).map((project, idx) => {
+                          // Try to match a url from portfolio.projects by name
+                          const matched = projects.find(p => p.name === project.name);
+                          const githubUrl = project.url || matched?.url || null;
+                          const liveUrl = project.homepage || matched?.homepage || null;
+                          const tech = project.language || matched?.language;
+                          const topics = project.topics?.length ? project.topics : (matched?.topics || []);
+                          return (
+                            <div key={idx} className="text-xs text-gray-700">
+                              {/* Project name row with links */}
+                              <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
+                                <h4 className="font-bold text-[#0ea5e9]">
+                                  {project.name || project.title || "Project"}
+                                </h4>
+                                {tech && (
+                                  <span className="text-gray-400 italic">
+                                    — {[tech, ...topics.slice(0, 2)].filter(Boolean).join(", ")}
+                                  </span>
+                                )}
+                                {githubUrl && (
+                                  <a
+                                    href={githubUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-500 hover:text-[#0ea5e9] underline text-[10px]"
+                                    contentEditable={false}
+                                  >
+                                    [GitHub]
+                                  </a>
+                                )}
+                                {liveUrl && (
+                                  <a
+                                    href={liveUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-500 hover:text-emerald-600 underline text-[10px]"
+                                    contentEditable={false}
+                                  >
+                                    [Live]
+                                  </a>
+                                )}
+                              </div>
+                              {project.description && (
+                                <ul className="list-[circle] ml-5 mt-1 space-y-0.5">
+                                  {(Array.isArray(project.description) ? project.description : [project.description]).map((d, j) => (
+                                    <li key={j}>{d}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          );
+                        })
                       ) : (
                         // Fallback to standard portfolio shallow projects
-                        projects.slice(0, 4).map((project) => (
+                        projects.slice(0, 5).map((project) => (
                           <div key={project.name} className="text-xs text-gray-700">
-                            <div className="flex items-baseline gap-2">
+                            <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
                               <h4 className="font-bold text-[#0ea5e9]">{project.name}</h4>
-                              <span className="text-gray-500 italic">
-                                — {[project.language, ...(project.topics?.slice(0, 3) || [])].filter(Boolean).join(", ")}
+                              <span className="text-gray-400 italic">
+                                — {[project.language, ...(project.topics?.slice(0, 2) || [])].filter(Boolean).join(", ")}
                               </span>
+                              {project.url && (
+                                <a
+                                  href={project.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-500 hover:text-[#0ea5e9] underline text-[10px]"
+                                  contentEditable={false}
+                                >
+                                  [GitHub]
+                                </a>
+                              )}
+                              {project.homepage && (
+                                <a
+                                  href={project.homepage}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-500 hover:text-emerald-600 underline text-[10px]"
+                                  contentEditable={false}
+                                >
+                                  [Live]
+                                </a>
+                              )}
                             </div>
                             <ul className="list-[circle] ml-5 mt-1 space-y-0.5">
                               <li>{project.description || "A GitHub project."}</li>
