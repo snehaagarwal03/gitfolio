@@ -88,13 +88,19 @@ export default function Resume() {
   }
 
   function handleInsertLink() {
-    if (savedSelection) {
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(savedSelection);
-    }
-    document.execCommand("createLink", false, linkUrl);
-    setLinkModalOpen(false);
+    setLinkModalOpen(false); // Close first to release RadixUI focus traps
+    
+    setTimeout(() => {
+      if (resumeRef.current) {
+        resumeRef.current.focus();
+      }
+      if (savedSelection) {
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedSelection);
+      }
+      document.execCommand("createLink", false, linkUrl);
+    }, 100);
   }
 
   if (loading) {

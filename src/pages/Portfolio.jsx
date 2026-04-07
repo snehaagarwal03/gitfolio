@@ -169,7 +169,7 @@ export default function Portfolio() {
   const renderHeatmap = () => {
     // 52 weeks * 7 days Approx
     const cellCount = 364; 
-    const baseHex = themeColor || "#6366f1"; // default to primary indigo
+    const baseHex = themeColor || "#10b981"; // default to primary emerald
     const cells = Array.from({ length: cellCount }).map((_, i) => {
       // Create random mock density based on streak & contributions. Higher density towards end.
       const factor = i / cellCount; 
@@ -223,7 +223,7 @@ export default function Portfolio() {
   const renderProjects = () => (
     <div className={`grid gap-6 ${layoutMode === 'classic' ? 'sm:grid-cols-2 md:grid-cols-2' : 'sm:grid-cols-2'}`}>
       {projects.map((project) => {
-        const langColor = LANGUAGE_COLORS[project.language] || (themeColor || "#6366f1");
+        const langColor = LANGUAGE_COLORS[project.language] || (themeColor || "#10b981");
         return (
           <Card key={project.name} className="flex flex-col bg-card/60 hover:bg-card/90 transition-colors border-border shadow-md overflow-hidden relative group">
             {/* Top Color Line */}
