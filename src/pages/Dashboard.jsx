@@ -382,24 +382,53 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
+                  className="relative perspective-1000"
                 >
-                  <label className="mb-2 block text-sm font-medium text-text-secondary">
+                  <label className="mb-2 block text-sm font-medium text-muted-foreground">
                     GitHub Username
                   </label>
-                  <div className="mb-6 flex gap-3">
-                    <div className="relative flex-1">
-                      <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <div className="mb-6 flex flex-col gap-3">
+                    <div className="relative group focus-within:ring-2 focus-within:ring-ring focus-within:border-primary transition-all rounded-md">
+                      <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="text"
                         value={githubUsername}
                         onChange={(e) => setGithubUsername(e.target.value)}
                         placeholder="e.g. octocat"
-                        className="w-full rounded-lg border border-surface-500 bg-surface-700 py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-primary"
+                        className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 pl-10 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") handleGeneratePortfolio();
+                          if (e.key === "Enter") handleGeneratePortfolio(false);
                         }}
                       />
                     </div>
+
+                    <AnimatePresence>
+                      {githubUsername.length > 2 && !loading && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, rotateX: -10 }}
+                          animate={{ opacity: 1, y: 5, rotateX: 0 }}
+                          exit={{ opacity: 0, y: -10, rotateX: -10 }}
+                          transition={{ duration: 0.3 }}
+                          className="w-full p-4 bg-card/80 backdrop-blur-xl border border-border rounded-xl shadow-xl text-left"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="h-12 w-12 rounded-full border-2 border-primary/20 bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0">
+                              {githubUsername.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-1 text-foreground">
+                              <h3 className="font-semibold text-lg truncate">{githubUsername}</h3>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <FaGithub /> {githubUsername}
+                              </p>
+                              <p className="text-xs mt-1 text-foreground/80 line-clamp-1">
+                                Generating a professional portfolio for {githubUsername}...
+                              </p>
+                            </div>
+                          </div>
+                      </motion.div>
+                      )}
+                    </AnimatePresence>
+
                   </div>
                   <button
                     onClick={() => handleGeneratePortfolio(false)}
@@ -421,10 +450,10 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mt-4 flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3"
+                className="mt-4 flex items-start gap-3 rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-destructive"
               >
-                <FaExclamationCircle className="mt-0.5 shrink-0 text-red-400" />
-                <p className="text-sm text-red-300">{error}</p>
+                <FaExclamationCircle className="mt-0.5 shrink-0" />
+                <p className="text-sm font-medium">{error}</p>
               </motion.div>
             )}
           </AnimatePresence>

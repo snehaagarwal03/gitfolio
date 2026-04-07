@@ -1,20 +1,12 @@
 import { motion } from "framer-motion";
-import { useTheme } from "../contexts/ThemeContext";
-import { FaSun, FaMoon, FaDownload, FaBold, FaItalic, FaLink } from "react-icons/fa";
+import { FaDownload, FaBold, FaItalic, FaLink } from "react-icons/fa";
 import Navbar from "../components/common/Navbar";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
 
 export default function Resume() {
-  const { toggleTheme, isDark } = useTheme();
-
-  // TODO: Implement full resume editor with state management
-  // This is the page shell with layout structure
-
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        isDark ? "bg-surface-900" : "bg-gray-100"
-      }`}
-    >
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <Navbar />
 
       <main className="px-6 pt-24 pb-16">
@@ -24,75 +16,33 @@ export default function Resume() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className={`mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-4 ${
-              isDark
-                ? "border-surface-600 bg-surface-800"
-                : "border-gray-200 bg-white"
-            }`}
+            className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card/50 p-4 backdrop-blur-md"
           >
             <div className="flex items-center gap-2">
-              <h1
-                className={`text-lg font-bold ${isDark ? "text-text-primary" : "text-gray-900"}`}
-              >
+              <h1 className="text-lg font-bold">
                 Resume Editor
               </h1>
             </div>
 
             <div className="flex items-center gap-2">
               {/* Text formatting controls */}
-              <button
-                className={`rounded-lg p-2 transition-colors ${
-                  isDark
-                    ? "text-text-secondary hover:bg-surface-700 hover:text-text-primary"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-                title="Bold"
-              >
+              <Button variant="ghost" size="icon" title="Bold">
                 <FaBold />
-              </button>
-              <button
-                className={`rounded-lg p-2 transition-colors ${
-                  isDark
-                    ? "text-text-secondary hover:bg-surface-700 hover:text-text-primary"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-                title="Italic"
-              >
+              </Button>
+              <Button variant="ghost" size="icon" title="Italic">
                 <FaItalic />
-              </button>
-              <button
-                className={`rounded-lg p-2 transition-colors ${
-                  isDark
-                    ? "text-text-secondary hover:bg-surface-700 hover:text-text-primary"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-                title="Add Link"
-              >
+              </Button>
+              <Button variant="ghost" size="icon" title="Add Link">
                 <FaLink />
-              </button>
+              </Button>
 
-              <div
-                className={`mx-2 h-6 w-px ${isDark ? "bg-surface-600" : "bg-gray-200"}`}
-              />
-
-              {/* Theme toggle */}
-              <button
-                onClick={toggleTheme}
-                className={`rounded-lg p-2 transition-colors ${
-                  isDark
-                    ? "text-yellow-400 hover:bg-surface-700"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-                title={`Switch to ${isDark ? "light" : "dark"} mode`}
-              >
-                {isDark ? <FaSun /> : <FaMoon />}
-              </button>
+              <div className="mx-2 h-6 w-px bg-border" />
 
               {/* Download PDF */}
-              <button className="ml-2 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark">
+              <Button className="ml-2 gap-2" variant="default">
                 <FaDownload />
                 Download PDF
-              </button>
+              </Button>
             </div>
           </motion.div>
 
@@ -101,13 +51,13 @@ export default function Resume() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mx-auto max-w-[816px] rounded-lg bg-white p-12 shadow-xl"
+            className="mx-auto max-w-[816px] rounded-lg bg-white p-12 shadow-2xl relative overflow-hidden ring-1 ring-border"
             style={{
               minHeight: "1056px", // Standard letter paper ratio
             }}
           >
             {/* Resume Content - always white background, dark text */}
-            <div className="text-gray-900">
+            <div className="text-gray-900 font-sans print:p-0">
               {/* Header */}
               <div className="mb-6 border-b-2 border-gray-800 pb-4 text-center">
                 <h2 className="text-3xl font-bold">

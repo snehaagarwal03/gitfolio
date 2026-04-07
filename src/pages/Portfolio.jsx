@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { useTheme } from "../contexts/ThemeContext";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  FaSun,
-  FaMoon,
   FaGithub,
   FaExternalLinkAlt,
   FaStar,
@@ -15,18 +12,33 @@ import {
   FaTwitter,
   FaBuilding,
   FaFire,
-  FaCode,
+  FaUsers,
+  FaBook,
+  FaPalette,
 } from "react-icons/fa";
 import { getPortfolioByUsername } from "../services/firestore";
 import { LANGUAGE_COLORS } from "../services/github";
 import Loader from "../components/common/Loader";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
+
+const PORTFOLIO_THEMES = [
+  { name: "Default (Primary)", value: "default", color: "bg-primary" },
+  { name: "Rose", value: "rose", color: "bg-rose-500", primary: "#f43f5e" },
+  { name: "Emerald", value: "emerald", color: "bg-emerald-500", primary: "#10b981" },
+  { name: "Amber", value: "amber", color: "bg-amber-500", primary: "#f59e0b" },
+  { name: "Violet", value: "violet", color: "bg-violet-500", primary: "#8b5cf6" },
+];
 
 export default function Portfolio() {
   const { username } = useParams();
-  const { theme, toggleTheme, isDark } = useTheme();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(PORTFOLIO_THEMES[0]);
 
   useEffect(() => {
     async function loadPortfolio() {
@@ -45,53 +57,29 @@ export default function Portfolio() {
     if (username) loadPortfolio();
   }, [username]);
 
-  // Loading state
   if (loading) {
     return (
-      <div
-        className={`flex min-h-screen items-center justify-center ${
-          isDark ? "bg-surface-900" : "bg-gray-50"
-        }`}
-      >
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader />
       </div>
     );
   }
 
-  // Not found state
   if (error || !portfolio) {
     return (
-      <div
-        className={`flex min-h-screen flex-col items-center justify-center px-6 ${
-          isDark ? "bg-surface-900 text-text-primary" : "bg-gray-50 text-gray-900"
-        }`}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-4xl">
-            ?
-          </div>
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 bg-background text-foreground">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-4xl">?</div>
           <h1 className="mb-2 text-2xl font-bold">Portfolio Not Found</h1>
-          <p
-            className={`mb-6 ${isDark ? "text-text-secondary" : "text-gray-600"}`}
-          >
-            No portfolio has been generated for &quot;{username}&quot; yet.
-          </p>
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-dark"
-          >
-            Generate Portfolio
+          <p className="mb-6 text-muted-foreground">No portfolio has been generated for "{username}" yet.</p>
+          <Link to="/dashboard">
+            <Button>Generate Portfolio</Button>
           </Link>
         </motion.div>
       </div>
     );
   }
 
-  // Destructure portfolio data
   const {
     name,
     bio,
@@ -106,592 +94,181 @@ export default function Portfolio() {
     languages = [],
     contributions = {},
     stats = {},
-    readmeSections,
   } = portfolio;
 
-  // Determine if we have contact info
-  const hasContact = location || email || blog || twitterUsername || company;
+  // Render variables dynamically onto the container to override the theme if custom theme is selected
+  const themeStyles = currentTheme.value !== "default" ? {
+    "--primary": "0 0 0", // We could inject actual HSL/OKLCH, but for now we'll just style specific elements using inline logic or standard utility overrides
+  } : {};
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        isDark ? "bg-surface-900 text-text-primary" : "bg-gray-50 text-gray-900"
-      }`}
+    <div 
+      className={`min-h-screen bg-background text-foreground transition-colors duration-500`}
+      style={themeStyles}
     >
-      {/* Theme Toggle */}
-      <button
-        onClick={toggleTheme}
-        className={`fixed right-6 top-6 z-50 rounded-full p-3 shadow-lg transition-colors ${
-          isDark
-            ? "bg-surface-700 text-yellow-400 hover:bg-surface-600"
-            : "bg-white text-gray-700 hover:bg-gray-100"
-        }`}
-        title={`Switch to ${isDark ? "light" : "dark"} mode`}
-      >
-        {isDark ? <FaSun /> : <FaMoon />}
-      </button>
+      {/* Floating Theme Switcher */}
+      <div className="fixed right-6 bottom-6 md:top-6 md:bottom-auto z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="rounded-full shadow-lg border-border">
+              <FaPalette className="text-primary" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {PORTFOLIO_THEMES.map((theme) => (
+              <DropdownMenuItem 
+                key={theme.value} 
+                onClick={() => setCurrentTheme(theme)}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <span className={`h-4 w-4 rounded-full ${theme.color}`} style={theme.value !== 'default' ? {backgroundColor: theme.primary} : {}} />
+                {theme.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-      {/* Hero Section */}
-      <section className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-        >
-          {/* Avatar */}
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={name}
-              className="mx-auto mb-6 h-24 w-24 rounded-full object-cover ring-4 ring-primary/20"
-            />
-          ) : (
-            <div
-              className={`mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full text-4xl font-bold ${
-                isDark
-                  ? "bg-primary/20 text-primary"
-                  : "bg-indigo-100 text-indigo-600"
-              }`}
-            >
-              {(name || username)?.charAt(0).toUpperCase() || "?"}
-            </div>
-          )}
-
-          <h1 className="mb-2 text-4xl font-bold md:text-5xl">
-            {name || username}
-          </h1>
-          <p
-            className={`max-w-2xl text-lg ${isDark ? "text-text-secondary" : "text-gray-600"}`}
-          >
-            {bio || "Developer portfolio generated by GitFolio"}
-          </p>
-
-          <div className="mt-6 flex items-center justify-center gap-4">
-            <a
-              href={`https://github.com/${username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                isDark
-                  ? "bg-surface-700 text-text-primary hover:bg-surface-600"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
-            >
-              <FaGithub />
-              GitHub Profile
-              <FaExternalLinkAlt className="text-xs" />
-            </a>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Skills Section */}
-      {skills.length > 0 && (
-        <section className="px-6 py-16">
-          <div className="mx-auto max-w-4xl">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-8 text-center text-2xl font-bold"
-            >
-              Skills
-            </motion.h2>
-            <div className="flex flex-wrap justify-center gap-3">
-              {skills.map((skill) => (
-                <motion.span
-                  key={skill}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  className={`rounded-full px-4 py-2 text-sm font-medium ${
-                    isDark
-                      ? "bg-surface-700 text-text-secondary"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  {skill}
-                </motion.span>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Most Used Languages Section - GitHub Style */}
-      {languages.length > 0 && (
-        <section className="px-6 py-16">
-          <div className="mx-auto max-w-4xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={`rounded-xl border p-6 ${
-                isDark
-                  ? "border-surface-600 bg-surface-800"
-                  : "border-gray-200 bg-white shadow-sm"
-              }`}
-            >
-              <div className="mb-4 flex items-center gap-2">
-                <FaCode className={isDark ? "text-text-secondary" : "text-gray-500"} />
-                <h2 className="text-lg font-semibold">Languages</h2>
+      <div className="mx-auto max-w-6xl px-4 py-12 md:py-24">
+        <div className="grid gap-8 md:grid-cols-12 md:gap-12">
+          
+          {/* Left Sidebar (Profile) */}
+          <div className="md:col-span-4 md:sticky md:top-24 self-start space-y-6">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+              <Avatar className="h-32 w-32 border-4 border-background shadow-xl mb-4">
+                <AvatarImage src={avatarUrl} alt={name} />
+                <AvatarFallback>{name?.charAt(0) || "?"}</AvatarFallback>
+              </Avatar>
+              
+              <h1 className="text-3xl font-bold tracking-tight mb-1">{name || username}</h1>
+              <p className="text-muted-foreground flex items-center gap-2 mb-4">
+                <FaGithub /> @{username}
+              </p>
+              
+              <p className="text-foreground/90 leading-relaxed mb-6">{bio}</p>
+              
+              <div className="space-y-3 text-sm text-muted-foreground mb-6">
+                {location && <p className="flex items-center gap-2"><FaMapMarkerAlt /> {location}</p>}
+                {company && <p className="flex items-center gap-2"><FaBuilding /> {company}</p>}
+                {email && <p className="flex items-center gap-2"><FaEnvelope /> <a href={`mailto:${email}`} className="hover:text-foreground">{email}</a></p>}
+                {blog && <p className="flex items-center gap-2"><FaLink /> <a href={blog.startsWith("http") ? blog : `https://${blog}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">{blog}</a></p>}
+                {twitterUsername && <p className="flex items-center gap-2"><FaTwitter /> <a href={`https://twitter.com/${twitterUsername}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">@{twitterUsername}</a></p>}
               </div>
-
-              {/* GitHub-style horizontal stacked bar */}
-              <div className="mb-4 flex h-4 w-full overflow-hidden rounded-full">
-                {languages.slice(0, 8).map((lang) => (
-                  <div
-                    key={lang.language}
-                    className="h-full transition-all hover:opacity-80"
-                    style={{
-                      width: `${lang.percentage}%`,
-                      backgroundColor:
-                        LANGUAGE_COLORS[lang.language] || LANGUAGE_COLORS.default,
-                    }}
-                    title={`${lang.language}: ${lang.percentage}%`}
-                  />
-                ))}
-              </div>
-
-              {/* Language legend in a flex wrap */}
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {languages.slice(0, 8).map((lang) => (
-                  <div key={lang.language} className="flex items-center gap-2">
-                    <span
-                      className="h-3 w-3 rounded-full"
-                      style={{
-                        backgroundColor:
-                          LANGUAGE_COLORS[lang.language] || LANGUAGE_COLORS.default,
-                      }}
-                    />
-                    <span
-                      className={`text-sm ${
-                        isDark ? "text-text-primary" : "text-gray-800"
-                      }`}
-                    >
-                      {lang.language}
-                    </span>
-                    <span
-                      className={`text-xs ${
-                        isDark ? "text-text-muted" : "text-gray-500"
-                      }`}
-                    >
-                      {lang.percentage}%
-                    </span>
-                  </div>
-                ))}
+              
+              <div className="flex items-center gap-4 text-sm text-foreground/80 pt-4 border-t border-border">
+                <span className="flex items-center gap-1"><FaUsers /> <strong className="text-foreground">{stats.followers}</strong> followers</span>
+                <span className="flex items-center gap-1">· <strong className="text-foreground">{stats.following}</strong> following</span>
               </div>
             </motion.div>
           </div>
-        </section>
-      )}
 
-      {/* Contribution Activity Section - GitHub Style Grid */}
-      {(contributions.totalRecent > 0 || stats.currentStreak > 0) && (
-        <section className="px-6 py-16">
-          <div className="mx-auto max-w-4xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={`rounded-xl border p-6 ${
-                isDark
-                  ? "border-surface-600 bg-surface-800"
-                  : "border-gray-200 bg-white shadow-sm"
-              }`}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FaFire className="text-orange-500" />
-                  <h2 className="text-lg font-semibold">
-                    {contributions.totalRecent || 0} contributions in the last month
-                  </h2>
-                </div>
-                {stats.currentStreak > 0 && (
-                  <div className="flex items-center gap-1 text-sm">
-                    <FaFire className="text-orange-500" />
-                    <span className="font-semibold text-orange-500">
-                      {stats.currentStreak} day streak
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* GitHub-style contribution grid */}
-              {contributions.contributionsByDate && (
-                <div className="overflow-x-auto">
-                  <div className="inline-block">
-                    {/* Month labels */}
-                    <div
-                      className={`mb-1 ml-8 flex text-xs ${
-                        isDark ? "text-text-muted" : "text-gray-500"
-                      }`}
-                    >
-                      {(() => {
-                        const weeks = 5;
-                        const months = [];
-                        const today = new Date();
-                        for (let w = 0; w < weeks; w++) {
-                          const weekStart = new Date(today);
-                          weekStart.setDate(weekStart.getDate() - (weeks - 1 - w) * 7);
-                          const monthName = weekStart.toLocaleDateString("en", { month: "short" });
-                          if (w === 0 || months[months.length - 1]?.month !== monthName) {
-                            months.push({ month: monthName, week: w });
-                          }
-                        }
-                        return months.map((m, i) => (
-                          <span
-                            key={i}
-                            style={{ marginLeft: i === 0 ? `${m.week * 20}px` : `${(m.week - months[i-1]?.week - 1) * 20}px` }}
-                            className="w-20"
-                          >
-                            {m.month}
+          {/* Right Content Area */}
+          <div className="md:col-span-8">
+            <Tabs defaultValue="projects" className="w-full">
+              <TabsList className="mb-6 w-full justify-start overflow-x-auto bg-transparent border-b border-border rounded-none pb-0 h-auto">
+                <TabsTrigger value="projects" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none rounded-t-sm px-6 py-3">Projects</TabsTrigger>
+                <TabsTrigger value="skills" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none rounded-t-sm px-6 py-3">Skills & Stats</TabsTrigger>
+                <TabsTrigger value="contributions" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none rounded-t-sm px-6 py-3">Contributions</TabsTrigger>
+              </TabsList>
+              
+              {/* Projects Tab */}
+              <TabsContent value="projects" className="mt-0 outline-none">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid gap-6 sm:grid-cols-2">
+                  {projects.map((project, idx) => (
+                    <Card key={project.name} className="flex flex-col bg-card/50 hover:bg-card/80 transition-colors border-border shadow-sm">
+                      <CardHeader className="p-5 pb-3">
+                        <CardTitle className="text-xl flex items-center justify-between">
+                          <a href={project.url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
+                            <FaBook className="text-muted-foreground text-base" /> {project.name}
+                          </a>
+                          {project.homepage && (
+                            <a href={project.homepage} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                              <FaExternalLinkAlt className="text-sm" />
+                            </a>
+                          )}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-5 pt-0 flex-1">
+                        <p className="text-muted-foreground text-sm line-clamp-3">{project.description}</p>
+                      </CardContent>
+                      <CardFooter className="p-5 pt-0 flex items-center gap-4 text-xs text-muted-foreground">
+                        {project.language && (
+                          <span className="flex items-center gap-1.5">
+                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: LANGUAGE_COLORS[project.language] || LANGUAGE_COLORS.default }} />
+                            {project.language}
                           </span>
-                        ));
-                      })()}
-                    </div>
+                        )}
+                        <span className="flex items-center gap-1.5 hover:text-foreground cursor-pointer"><FaStar /> {project.stars}</span>
+                        <span className="flex items-center gap-1.5 hover:text-foreground cursor-pointer"><FaCodeBranch /> {project.forks}</span>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </motion.div>
+                {projects.length === 0 && <p className="text-muted-foreground">No featured projects found.</p>}
+              </TabsContent>
 
-                    <div className="flex gap-1">
-                      {/* Day labels */}
+              {/* Skills & Stats Tab */}
+              <TabsContent value="skills" className="mt-0 outline-none space-y-8">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <h3 className="text-lg font-semibold mb-4">Top Languages</h3>
+                  <div className="mb-4 flex h-3 w-full overflow-hidden rounded-full bg-secondary">
+                    {languages.slice(0, 8).map((lang) => (
                       <div
-                        className={`flex flex-col gap-1 text-xs ${
-                          isDark ? "text-text-muted" : "text-gray-500"
-                        }`}
-                      >
-                        <span className="h-3 leading-3">Mon</span>
-                        <span className="h-3 leading-3">Wed</span>
-                        <span className="h-3 leading-3">Fri</span>
-                      </div>
-
-                      {/* Contribution grid */}
-                      <div className="flex gap-[3px]">
-                        {Array.from({ length: 5 }).map((_, weekIndex) => (
-                          <div key={weekIndex} className="flex flex-col gap-[3px]">
-                            {Array.from({ length: 7 }).map((_, dayIndex) => {
-                              const date = new Date();
-                              const daysAgo = (4 - weekIndex) * 7 + (6 - dayIndex);
-                              date.setDate(date.getDate() - daysAgo);
-                              const dateStr = date.toISOString().split("T")[0];
-                              const count = contributions.contributionsByDate[dateStr] || 0;
-
-                              const getColor = () => {
-                                if (count === 0) return isDark ? "bg-[#161b22]" : "bg-[#ebedf0]";
-                                if (count < 3) return "bg-[#9be9a8]";
-                                if (count < 6) return "bg-[#40c463]";
-                                if (count < 10) return "bg-[#30a14e]";
-                                return "bg-[#216e39]";
-                              };
-
-                              return (
-                                <div
-                                  key={dayIndex}
-                                  className={`h-3 w-3 rounded-[2px] ${getColor()} cursor-pointer transition-transform hover:ring-1 hover:ring-white/50`}
-                                  title={`${dateStr}: ${count} contribution${count !== 1 ? "s" : ""}`}
-                                />
-                              );
-                            })}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Legend */}
-                    <div
-                      className={`mt-3 flex items-center justify-end gap-2 text-xs ${
-                        isDark ? "text-text-muted" : "text-gray-500"
-                      }`}
-                    >
-                      <span>Less</span>
-                      <div className="flex gap-1">
-                        <div className={`h-3 w-3 rounded-[2px] ${isDark ? "bg-[#161b22]" : "bg-[#ebedf0]"}`} />
-                        <div className="h-3 w-3 rounded-[2px] bg-[#9be9a8]" />
-                        <div className="h-3 w-3 rounded-[2px] bg-[#40c463]" />
-                        <div className="h-3 w-3 rounded-[2px] bg-[#30a14e]" />
-                        <div className="h-3 w-3 rounded-[2px] bg-[#216e39]" />
-                      </div>
-                      <span>More</span>
-                    </div>
+                        key={lang.language}
+                        className="h-full hover:opacity-80 transition-opacity"
+                        style={{ width: `${lang.percentage}%`, backgroundColor: LANGUAGE_COLORS[lang.language] || LANGUAGE_COLORS.default }}
+                        title={`${lang.language}: ${lang.percentage}%`}
+                      />
+                    ))}
                   </div>
-                </div>
-              )}
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* Projects Section */}
-      {projects.length > 0 && (
-        <section className="px-6 py-16">
-          <div className="mx-auto max-w-5xl">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-8 text-center text-2xl font-bold"
-            >
-              Projects
-            </motion.h2>
-            <div className="grid gap-6 md:grid-cols-2">
-              {projects.map((project, index) => (
-                <motion.div
-                  key={project.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`group rounded-xl border p-6 transition-colors ${
-                    isDark
-                      ? "border-surface-600 bg-surface-800 hover:border-surface-500"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="mb-2 flex items-start justify-between">
-                    <h3 className="text-lg font-semibold">{project.name}</h3>
-                    <div className="flex items-center gap-2">
-                      {project.homepage && (
-                        <a
-                          href={project.homepage}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-text-muted transition-colors hover:text-primary"
-                          title="Live demo"
-                        >
-                          <FaExternalLinkAlt className="text-xs" />
-                        </a>
-                      )}
-                      {project.url && (
-                        <a
-                          href={project.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-text-muted transition-colors hover:text-primary"
-                          title="Source code"
-                        >
-                          <FaGithub />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  <p
-                    className={`mb-4 text-sm ${isDark ? "text-text-secondary" : "text-gray-600"}`}
-                  >
-                    {project.description || "A GitHub repository."}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm">
-                    {project.language && (
-                      <span
-                        className={`flex items-center gap-1 ${isDark ? "text-text-muted" : "text-gray-500"}`}
-                      >
-                        <span className="inline-block h-3 w-3 rounded-full bg-primary" />
-                        {project.language}
-                      </span>
-                    )}
-                    <span
-                      className={`flex items-center gap-1 ${isDark ? "text-text-muted" : "text-gray-500"}`}
-                    >
-                      <FaStar className="text-yellow-500" /> {project.stars}
-                    </span>
-                    <span
-                      className={`flex items-center gap-1 ${isDark ? "text-text-muted" : "text-gray-500"}`}
-                    >
-                      <FaCodeBranch /> {project.forks}
-                    </span>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {languages.slice(0, 8).map((lang) => (
+                      <div key={lang.language} className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: LANGUAGE_COLORS[lang.language] || LANGUAGE_COLORS.default }} />
+                        <span className="font-medium text-foreground">{lang.language}</span>
+                        <span className="text-muted-foreground">{lang.percentage}%</span>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
-      {/* Stats Section */}
-      <section className="px-6 py-16">
-        <div className="mx-auto max-w-3xl">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-8 text-center text-2xl font-bold"
-          >
-            GitHub Stats
-          </motion.h2>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {[
-              { label: "Repositories", value: stats.repos ?? "--" },
-              { label: "Stars", value: stats.stars ?? "--" },
-              { label: "Followers", value: stats.followers ?? "--" },
-              { label: "Following", value: stats.following ?? "--" },
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className={`rounded-xl p-6 text-center ${
-                  isDark ? "bg-surface-800" : "bg-white shadow-sm"
-                }`}
-              >
-                <div className="text-3xl font-bold text-primary">
-                  {stat.value}
-                </div>
-                <div
-                  className={`mt-1 text-sm ${isDark ? "text-text-muted" : "text-gray-500"}`}
-                >
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* README Sections (Education, Experience, Achievements, etc.) */}
-      {readmeSections && Object.keys(readmeSections).length > 0 && (
-        <section className="px-6 py-16">
-          <div className="mx-auto max-w-4xl">
-            {Object.entries(readmeSections).map(([sectionKey, items]) => {
-              if (!Array.isArray(items) || items.length === 0) return null;
-              const sectionTitle =
-                sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1);
-              return (
-                <div key={sectionKey} className="mb-12 last:mb-0">
-                  <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="mb-6 text-center text-2xl font-bold"
-                  >
-                    {sectionTitle}
-                  </motion.h2>
-                  <div className="space-y-3">
-                    {items.map((item, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: idx * 0.05 }}
-                        className={`rounded-lg px-5 py-4 ${
-                          isDark
-                            ? "bg-surface-800"
-                            : "bg-white shadow-sm"
-                        }`}
-                      >
-                        <p className={isDark ? "text-text-secondary" : "text-gray-700"}>
-                          {typeof item === "string" ? item : JSON.stringify(item)}
-                        </p>
-                      </motion.div>
+                <div className="pt-8 border-t border-border">
+                  <h3 className="text-lg font-semibold mb-4">Skills Extracted by AI</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.map((skill) => (
+                      <span key={skill} className="px-3 py-1 rounded-md bg-secondary text-secondary-foreground text-sm">
+                        {skill}
+                      </span>
                     ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+              </TabsContent>
 
-      {/* Contact Section */}
-      {hasContact && (
-        <section className="px-6 py-16">
-          <div className="mx-auto max-w-xl text-center">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-6 text-2xl font-bold"
-            >
-              Get in Touch
-            </motion.h2>
-            <div className="flex flex-wrap justify-center gap-4">
-              {location && (
-                <span
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm ${
-                    isDark
-                      ? "bg-surface-700 text-text-secondary"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  <FaMapMarkerAlt className="text-primary" />
-                  {location}
-                </span>
-              )}
-              {company && (
-                <span
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm ${
-                    isDark
-                      ? "bg-surface-700 text-text-secondary"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  <FaBuilding className="text-primary" />
-                  {company}
-                </span>
-              )}
-              {email && (
-                <a
-                  href={`mailto:${email}`}
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${
-                    isDark
-                      ? "bg-surface-700 text-text-secondary hover:bg-surface-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <FaEnvelope className="text-primary" />
-                  {email}
-                </a>
-              )}
-              {blog && (
-                <a
-                  href={blog.startsWith("http") ? blog : `https://${blog}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${
-                    isDark
-                      ? "bg-surface-700 text-text-secondary hover:bg-surface-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <FaLink className="text-primary" />
-                  {blog.replace(/^https?:\/\//, "")}
-                </a>
-              )}
-              {twitterUsername && (
-                <a
-                  href={`https://twitter.com/${twitterUsername}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${
-                    isDark
-                      ? "bg-surface-700 text-text-secondary hover:bg-surface-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <FaTwitter className="text-primary" />
-                  @{twitterUsername}
-                </a>
-              )}
-            </div>
+              {/* Contributions Tab */}
+              <TabsContent value="contributions" className="mt-0 outline-none">
+                <Card className="bg-card/50 border-border shadow-sm p-6">
+                  <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
+                    <div className="flex items-center gap-2">
+                      <FaFire className="text-orange-500 text-xl" />
+                      <h3 className="text-lg font-semibold">{contributions.totalRecent || 0} contributions in the last month</h3>
+                    </div>
+                    {stats.currentStreak > 0 && (
+                      <div className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-sm font-medium">
+                        {stats.currentStreak} day streak!
+                      </div>
+                    )}
+                  </div>
+                  {/* Simplified contribution representation or could use the old grid. For now, displaying it simply */}
+                  <div className="p-4 rounded-lg border border-border bg-background flex flex-col items-center justify-center min-h-[160px] text-muted-foreground">
+                    <p>Contribution graph data visualization goes here.</p>
+                    <p className="text-sm mt-2">Active repos: {stats.repos}</p>
+                  </div>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
-        </section>
-      )}
-
-      {/* Footer */}
-      <footer
-        className={`border-t px-6 py-8 text-center text-sm ${
-          isDark
-            ? "border-surface-700 text-text-muted"
-            : "border-gray-200 text-gray-500"
-        }`}
-      >
-        Built with{" "}
-        <a
-          href="/"
-          className="font-medium text-primary transition-colors hover:text-primary-light"
-        >
-          GitFolio
-        </a>
-      </footer>
+        </div>
+      </div>
     </div>
   );
 }
