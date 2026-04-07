@@ -81,9 +81,11 @@ export async function fetchGitHubUser(username, token = null) {
             bio
             location
             company
+            url
             websiteUrl
             twitterUsername
             avatarUrl
+            email
             followers { totalCount }
             following { totalCount }
             repositories(privacy: PUBLIC) { totalCount }
@@ -98,9 +100,11 @@ export async function fetchGitHubUser(username, token = null) {
         bio: user.bio,
         location: user.location,
         company: user.company,
+        html_url: user.url,
         blog: user.websiteUrl,
         twitter_username: user.twitterUsername,
         avatar_url: user.avatarUrl,
+        email: user.email || null,
         followers: user.followers.totalCount,
         following: user.following.totalCount,
         public_repos: user.repositories.totalCount
@@ -142,6 +146,7 @@ export async function fetchGitHubRepos(username, perPage = 30, token = null) {
             repositories(first: $first, orderBy: {field: UPDATED_AT, direction: DESC}, privacy: PUBLIC, isFork: false) {
               nodes {
                 name
+                url
                 description
                 stargazerCount
                 forkCount
@@ -160,6 +165,7 @@ export async function fetchGitHubRepos(username, perPage = 30, token = null) {
       // Map to REST format for frontend compatibility
       return data.user.repositories.nodes.map(repo => ({
         name: repo.name,
+        html_url: repo.url,
         description: repo.description,
         stargazers_count: repo.stargazerCount,
         forks_count: repo.forkCount,
@@ -252,6 +258,7 @@ export async function fetchAuthenticatedRepos(accessToken, perPage = 30) {
           repositories(first: $first, orderBy: {field: UPDATED_AT, direction: DESC}, isFork: false) {
             nodes {
               name
+              url
               description
               stargazerCount
               forkCount
@@ -268,6 +275,7 @@ export async function fetchAuthenticatedRepos(accessToken, perPage = 30) {
     const data = await fetchGraphQL(query, { first: perPage }, accessToken);
     return data.viewer.repositories.nodes.map(repo => ({
       name: repo.name,
+      html_url: repo.url,
       description: repo.description,
       stargazers_count: repo.stargazerCount,
       forks_count: repo.forkCount,

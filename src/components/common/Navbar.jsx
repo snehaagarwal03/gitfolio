@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
+import { FaBars, FaTimes, FaSignOutAlt, FaChevronDown } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import { APP_NAME } from "../../utils/constants";
 import LetterAvatar from "./LetterAvatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,7 +34,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 border-b border-surface-700 bg-surface-900/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        {/* Logo - Dashboard if authenticated, Landing if not */}
+        {/* Logo */}
         <Link to={user ? "/dashboard" : "/"} className="text-xl font-bold text-text-primary">
           {APP_NAME}
         </Link>
@@ -56,19 +63,33 @@ export default function Navbar() {
               >
                 Resume
               </Link>
-              <div className="flex items-center gap-3">
-                <LetterAvatar name={displayName} size="sm" />
-                <span className="text-sm text-text-secondary">
-                  {displayName}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="ml-2 rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-700 hover:text-text-primary"
-                  title="Logout"
-                >
-                  <FaSignOutAlt />
-                </button>
-              </div>
+
+              {/* Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-700 outline-none">
+                    <LetterAvatar name={displayName} size="sm" />
+                    <span className="text-sm text-text-secondary max-w-[120px] truncate">
+                      {displayName}
+                    </span>
+                    <FaChevronDown className="text-xs text-text-muted" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground"
+                  >
+                    <FaSignOutAlt className="text-sm" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Link
@@ -101,11 +122,12 @@ export default function Navbar() {
             <div className="flex flex-col gap-4 px-6 py-6">
               {user ? (
                 <>
-                  <div className="flex items-center gap-3 pb-4">
+                  <div className="flex items-center gap-3 pb-4 border-b border-surface-700">
                     <LetterAvatar name={displayName} size="sm" />
-                    <span className="text-sm text-text-secondary">
-                      {displayName}
-                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">{displayName}</p>
+                      <p className="text-xs text-text-muted">{user?.email}</p>
+                    </div>
                   </div>
                   <Link
                     to="/dashboard"
@@ -126,7 +148,7 @@ export default function Navbar() {
                       handleLogout();
                       setMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 text-sm font-medium text-error transition-colors hover:text-red-400"
+                    className="flex items-center gap-2 text-sm font-medium text-text-muted transition-colors hover:text-text-primary"
                   >
                     <FaSignOutAlt />
                     Logout

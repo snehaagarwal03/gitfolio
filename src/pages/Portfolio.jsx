@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   FaGithub,
   FaExternalLinkAlt,
@@ -15,22 +15,23 @@ import {
   FaUsers,
   FaBook,
   FaPalette,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { getPortfolioByUsername } from "../services/firestore";
 import { LANGUAGE_COLORS } from "../services/github";
 import Loader from "../components/common/Loader";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 
 const PORTFOLIO_THEMES = [
-  { name: "Default (Primary)", value: "default", color: "bg-primary" },
-  { name: "Rose", value: "rose", color: "bg-rose-500", primary: "#f43f5e" },
-  { name: "Emerald", value: "emerald", color: "bg-emerald-500", primary: "#10b981" },
-  { name: "Amber", value: "amber", color: "bg-amber-500", primary: "#f59e0b" },
-  { name: "Violet", value: "violet", color: "bg-violet-500", primary: "#8b5cf6" },
+  { name: "Default (Primary)", value: "default", hex: null },
+  { name: "Rose", value: "rose", hex: "#f43f5e" },
+  { name: "Emerald", value: "emerald", hex: "#10b981" },
+  { name: "Amber", value: "amber", hex: "#f59e0b" },
+  { name: "Violet", value: "violet", hex: "#8b5cf6" },
 ];
 
 export default function Portfolio() {
@@ -38,7 +39,7 @@ export default function Portfolio() {
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(PORTFOLIO_THEMES[0]);
+  const [activeTheme, setActiveTheme] = useState("default");
 
   useEffect(() => {
     async function loadPortfolio() {
@@ -57,12 +58,17 @@ export default function Portfolio() {
     if (username) loadPortfolio();
   }, [username]);
 
+  // Get the current theme's hex color (null = use CSS variable defaults)
+  const themeColor = PORTFOLIO_THEMES.find(t => t.value === activeTheme)?.hex || null;
+
+  // Helper: apply theme color to inline styles
+  const themed = (property) => themeColor ? { [property]: themeColor } : {};
+  const themedText = themeColor ? { color: themeColor } : {};
+  const themedBg = themeColor ? { backgroundColor: themeColor } : {};
+  const themedBorder = themeColor ? { borderColor: themeColor } : {};
+
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader />
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error || !portfolio) {
@@ -71,7 +77,7 @@ export default function Portfolio() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-4xl">?</div>
           <h1 className="mb-2 text-2xl font-bold">Portfolio Not Found</h1>
-          <p className="mb-6 text-muted-foreground">No portfolio has been generated for "{username}" yet.</p>
+          <p className="mb-6 text-muted-foreground">No portfolio has been generated for &quot;{username}&quot; yet.</p>
           <Link to="/dashboard">
             <Button>Generate Portfolio</Button>
           </Link>
@@ -96,42 +102,48 @@ export default function Portfolio() {
     stats = {},
   } = portfolio;
 
-  // Render variables dynamically onto the container to override the theme if custom theme is selected
-  const themeStyles = currentTheme.value !== "default" ? {
-    "--primary": "0 0 0", // We could inject actual HSL/OKLCH, but for now we'll just style specific elements using inline logic or standard utility overrides
-  } : {};
-
   return (
-    <div 
-      className={`min-h-screen bg-background text-foreground transition-colors duration-500`}
-      style={themeStyles}
-    >
-      {/* Floating Theme Switcher */}
-      <div className="fixed right-6 bottom-6 md:top-6 md:bottom-auto z-50">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
+      {/* Top bar with back button */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-background/80 backdrop-blur-md border-b border-border">
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <FaArrowLeft /> Back to Dashboard
+        </Link>
+
+        {/* Theme Switcher */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-full shadow-lg border-border">
-              <FaPalette className="text-primary" />
+            <Button variant="outline" size="icon" className="rounded-full border-border">
+              <FaPalette style={themedText} className={themeColor ? "" : "text-primary"} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             {PORTFOLIO_THEMES.map((theme) => (
-              <DropdownMenuItem 
-                key={theme.value} 
-                onClick={() => setCurrentTheme(theme)}
+              <DropdownMenuItem
+                key={theme.value}
+                onClick={() => setActiveTheme(theme.value)}
                 className="flex items-center gap-2 cursor-pointer"
               >
-                <span className={`h-4 w-4 rounded-full ${theme.color}`} style={theme.value !== 'default' ? {backgroundColor: theme.primary} : {}} />
+                <span
+                  className={`h-4 w-4 rounded-full ${theme.hex ? "" : "bg-primary"}`}
+                  style={theme.hex ? { backgroundColor: theme.hex } : {}}
+                />
                 {theme.name}
+                {activeTheme === theme.value && (
+                  <span className="ml-auto text-xs">✓</span>
+                )}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-12 md:py-24">
+      <div className="mx-auto max-w-6xl px-4 py-12 pt-20 md:py-24 md:pt-24">
         <div className="grid gap-8 md:grid-cols-12 md:gap-12">
-          
+
           {/* Left Sidebar (Profile) */}
           <div className="md:col-span-4 md:sticky md:top-24 self-start space-y-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -139,14 +151,14 @@ export default function Portfolio() {
                 <AvatarImage src={avatarUrl} alt={name} />
                 <AvatarFallback>{name?.charAt(0) || "?"}</AvatarFallback>
               </Avatar>
-              
+
               <h1 className="text-3xl font-bold tracking-tight mb-1">{name || username}</h1>
               <p className="text-muted-foreground flex items-center gap-2 mb-4">
                 <FaGithub /> @{username}
               </p>
-              
+
               <p className="text-foreground/90 leading-relaxed mb-6">{bio}</p>
-              
+
               <div className="space-y-3 text-sm text-muted-foreground mb-6">
                 {location && <p className="flex items-center gap-2"><FaMapMarkerAlt /> {location}</p>}
                 {company && <p className="flex items-center gap-2"><FaBuilding /> {company}</p>}
@@ -154,7 +166,7 @@ export default function Portfolio() {
                 {blog && <p className="flex items-center gap-2"><FaLink /> <a href={blog.startsWith("http") ? blog : `https://${blog}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">{blog}</a></p>}
                 {twitterUsername && <p className="flex items-center gap-2"><FaTwitter /> <a href={`https://twitter.com/${twitterUsername}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">@{twitterUsername}</a></p>}
               </div>
-              
+
               <div className="flex items-center gap-4 text-sm text-foreground/80 pt-4 border-t border-border">
                 <span className="flex items-center gap-1"><FaUsers /> <strong className="text-foreground">{stats.followers}</strong> followers</span>
                 <span className="flex items-center gap-1">· <strong className="text-foreground">{stats.following}</strong> following</span>
@@ -166,19 +178,21 @@ export default function Portfolio() {
           <div className="md:col-span-8">
             <Tabs defaultValue="projects" className="w-full">
               <TabsList className="mb-6 w-full justify-start overflow-x-auto bg-transparent border-b border-border rounded-none pb-0 h-auto">
-                <TabsTrigger value="projects" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none rounded-t-sm px-6 py-3">Projects</TabsTrigger>
-                <TabsTrigger value="skills" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none rounded-t-sm px-6 py-3">Skills & Stats</TabsTrigger>
-                <TabsTrigger value="contributions" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none rounded-t-sm px-6 py-3">Contributions</TabsTrigger>
+                <TabsTrigger value="projects" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 rounded-none rounded-t-sm px-6 py-3" style={activeTheme !== "default" ? { "--tw-border-opacity": 1 } : {}} >
+                  <span style={activeTheme !== "default" ? {} : {}}>Projects</span>
+                </TabsTrigger>
+                <TabsTrigger value="skills" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 rounded-none rounded-t-sm px-6 py-3">Skills & Stats</TabsTrigger>
+                <TabsTrigger value="contributions" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 rounded-none rounded-t-sm px-6 py-3">Contributions</TabsTrigger>
               </TabsList>
-              
+
               {/* Projects Tab */}
               <TabsContent value="projects" className="mt-0 outline-none">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid gap-6 sm:grid-cols-2">
-                  {projects.map((project, idx) => (
+                  {projects.map((project) => (
                     <Card key={project.name} className="flex flex-col bg-card/50 hover:bg-card/80 transition-colors border-border shadow-sm">
                       <CardHeader className="p-5 pb-3">
                         <CardTitle className="text-xl flex items-center justify-between">
-                          <a href={project.url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
+                          <a href={project.url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2" style={themedText}>
                             <FaBook className="text-muted-foreground text-base" /> {project.name}
                           </a>
                           {project.homepage && (
@@ -198,8 +212,8 @@ export default function Portfolio() {
                             {project.language}
                           </span>
                         )}
-                        <span className="flex items-center gap-1.5 hover:text-foreground cursor-pointer"><FaStar /> {project.stars}</span>
-                        <span className="flex items-center gap-1.5 hover:text-foreground cursor-pointer"><FaCodeBranch /> {project.forks}</span>
+                        <span className="flex items-center gap-1.5"><FaStar /> {project.stars}</span>
+                        <span className="flex items-center gap-1.5"><FaCodeBranch /> {project.forks}</span>
                       </CardFooter>
                     </Card>
                   ))}
@@ -236,7 +250,11 @@ export default function Portfolio() {
                   <h3 className="text-lg font-semibold mb-4">Skills Extracted by AI</h3>
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill) => (
-                      <span key={skill} className="px-3 py-1 rounded-md bg-secondary text-secondary-foreground text-sm">
+                      <span
+                        key={skill}
+                        className={`px-3 py-1 rounded-md text-sm ${themeColor ? "text-white" : "bg-secondary text-secondary-foreground"}`}
+                        style={themeColor ? { backgroundColor: themeColor + "22", color: themeColor, border: `1px solid ${themeColor}33` } : {}}
+                      >
                         {skill}
                       </span>
                     ))}
@@ -249,19 +267,34 @@ export default function Portfolio() {
                 <Card className="bg-card/50 border-border shadow-sm p-6">
                   <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
                     <div className="flex items-center gap-2">
-                      <FaFire className="text-orange-500 text-xl" />
+                      <FaFire className="text-xl" style={themeColor ? { color: themeColor } : { color: "#f97316" }} />
                       <h3 className="text-lg font-semibold">{contributions.totalRecent || 0} contributions in the last month</h3>
                     </div>
                     {stats.currentStreak > 0 && (
-                      <div className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-sm font-medium">
+                      <div
+                        className="px-3 py-1 rounded-full text-sm font-medium"
+                        style={themeColor
+                          ? { backgroundColor: themeColor + "1a", color: themeColor }
+                          : { backgroundColor: "rgba(249,115,22,0.1)", color: "#f97316" }
+                        }
+                      >
                         {stats.currentStreak} day streak!
                       </div>
                     )}
                   </div>
-                  {/* Simplified contribution representation or could use the old grid. For now, displaying it simply */}
-                  <div className="p-4 rounded-lg border border-border bg-background flex flex-col items-center justify-center min-h-[160px] text-muted-foreground">
-                    <p>Contribution graph data visualization goes here.</p>
-                    <p className="text-sm mt-2">Active repos: {stats.repos}</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-4 rounded-lg border border-border bg-background text-center">
+                      <p className="text-2xl font-bold" style={themedText || {}}>{stats.repos || 0}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Repositories</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-border bg-background text-center">
+                      <p className="text-2xl font-bold" style={themedText || {}}>{stats.stars || 0}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Total Stars</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-border bg-background text-center">
+                      <p className="text-2xl font-bold" style={themedText || {}}>{stats.followers || 0}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Followers</p>
+                    </div>
                   </div>
                 </Card>
               </TabsContent>

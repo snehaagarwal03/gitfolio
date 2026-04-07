@@ -1,6 +1,6 @@
 /**
  * LetterAvatar - Displays the first letter of a user's name in a colored circle.
- * Used as the default avatar before GitHub avatar integration.
+ * Colors are selected to be harmonious with the darkmatter theme.
  */
 
 const SIZE_CLASSES = {
@@ -10,16 +10,16 @@ const SIZE_CLASSES = {
   xl: "h-24 w-24 text-4xl",
 };
 
-// Deterministic color based on the name string
+// Darkmatter-compatible muted palette (no bright pink/red)
 const COLORS = [
-  "bg-indigo-500",
-  "bg-purple-500",
-  "bg-pink-500",
-  "bg-cyan-500",
-  "bg-emerald-500",
-  "bg-amber-500",
-  "bg-rose-500",
-  "bg-teal-500",
+  "bg-primary/80",
+  "bg-amber-600",
+  "bg-emerald-600",
+  "bg-cyan-600",
+  "bg-violet-600",
+  "bg-teal-600",
+  "bg-indigo-600",
+  "bg-orange-600",
 ];
 
 function getColorFromName(name) {
