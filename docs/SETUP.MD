@@ -143,7 +143,7 @@ VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
 VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 ```
 
-## 8. Run the Project Locally
+## 9. Run the Project Locally
 
 1. Install dependencies if needed.
 2. Start the development server:
@@ -154,16 +154,7 @@ npm run dev
 
 3. Open the local URL shown by Vite.
 
-## 9. Verify the Main Flows1. Install dependencies if needed.
-2. Start the development server:
-
-```bash
-npm run dev
-```
-
-3. Open the local URL shown by Vite.
-
-## 9. Verify the Main Flows
+## 10. Verify the Main Flows
 
 1. Open the landing page.
 2. Sign in with Google.
@@ -172,7 +163,7 @@ npm run dev
 5. Confirm the dashboard loads after authentication.
 6. Confirm the portfolio route uses the username-based format.
 
-## 10. Production Deployment Notes
+## 11. Production Deployment Notes
 
 1. Update Firebase authorized domains for the production site.
 2. Update the GitHub OAuth homepage URL and callback URL for production.
@@ -180,7 +171,7 @@ npm run dev
 4. Configure wildcard subdomain handling if public portfolio subdomains are enabled.
 5. Lock down Firestore security rules before going live.
 
-## 11. Important Environment Notes
+## 12. Important Environment Notes
 
 1. Keep secret values out of source control.
 2. Use separate keys for development and production.
