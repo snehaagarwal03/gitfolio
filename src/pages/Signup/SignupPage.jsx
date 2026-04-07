@@ -1,34 +1,40 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiGithub, FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
+import { FiGithub, FiMail, FiLock, FiAlertCircle, FiUser } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../context/AuthContext";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { loginWithEmail, loginWithGoogle, loginWithGithub } = useAuth();
+  const { signupWithEmail, loginWithGoogle, loginWithGithub } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match");
+    }
+
     try {
       setError("");
       setLoading(true);
-      await loginWithEmail(email, password);
+      await signupWithEmail(email, password);
       navigate("/dashboard");
     } catch (err) {
-      setError("Failed to sign in. Please check your credentials.");
+      setError("Failed to create an account. Email might be in use or invalid.");
       console.error(err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleProviderLogin(provider) {
+  async function handleProviderSignup(provider) {
     try {
       setError("");
       setLoading(true);
@@ -39,7 +45,7 @@ export default function LoginPage() {
       }
       navigate("/dashboard");
     } catch (err) {
-      setError(`Failed to sign in with ${provider}`);
+      setError(`Failed to sign up with ${provider}`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -59,10 +65,10 @@ export default function LoginPage() {
       >
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-white tracking-tight">
-            Welcome Back
+            Create Account
           </h2>
           <p className="mt-3 text-sm text-gray-400">
-            Sign in to access your GitFolio dashboard
+            Join GitFolio to build your stunning developer portfolio
           </p>
         </div>
 
@@ -100,6 +106,7 @@ export default function LoginPage() {
                 />
               </div>
             </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1.5" htmlFor="password">
                 Password
@@ -112,10 +119,30 @@ export default function LoginPage() {
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl bg-gray-950/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow sm:text-sm"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5" htmlFor="confirm-password">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="text-gray-500" />
+                </div>
+                <input
+                  id="confirm-password"
+                  name="confirm-password"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl bg-gray-950/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow sm:text-sm"
                   placeholder="••••••••"
                 />
@@ -128,7 +155,7 @@ export default function LoginPage() {
             disabled={loading}
             className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-gray-900 bg-emerald-500 hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)]"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 
@@ -139,14 +166,14 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-gray-900 text-gray-500 rounded-full border border-gray-800">
-                Or continue with
+                Or sign up with
               </span>
             </div>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-4">
             <button
-              onClick={() => handleProviderLogin("github")}
+              onClick={() => handleProviderSignup("github")}
               disabled={loading}
               className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-gray-700 rounded-xl shadow-sm bg-gray-800 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 transition-colors"
             >
@@ -155,7 +182,7 @@ export default function LoginPage() {
             </button>
 
             <button
-              onClick={() => handleProviderLogin("google")}
+              onClick={() => handleProviderSignup("google")}
               disabled={loading}
               className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-gray-700 rounded-xl shadow-sm bg-gray-800 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-900 transition-colors"
             >
@@ -166,9 +193,9 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-8 text-center text-sm text-gray-400">
-          Don't have an account?{" "}
-          <Link to="/signup" className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
-            Sign up now
+          Already have an account?{" "}
+          <Link to="/login" className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
+            Sign in
           </Link>
         </p>
       </motion.div>

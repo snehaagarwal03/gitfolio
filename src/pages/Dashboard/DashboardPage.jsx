@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiEye, FiRefreshCw, FiZap } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import { useUserData } from "../../hooks/useUserData";
 import { AUTH_PROVIDERS } from "../../constants";
@@ -148,127 +150,200 @@ export default function DashboardPage() {
   const hasExistingPortfolio = !!portfolio;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-6">Dashboard</h1>
+    <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-            {error}
-          </div>
-        )}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-4xl mx-auto relative z-10"
+      >
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+            Welcome to your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">Dashboard</span>
+          </h1>
+        </div>
+
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm shadow-lg"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {hasExistingPortfolio ? (
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-8"
+          >
             <ProfileCard
               profileData={profileData}
               portfolio={portfolio}
               username={portfolio.githubUsername || portfolio.slug}
             />
 
-            <div className="flex items-center gap-4">
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={() => navigate(`/${portfolio.slug}`)}
-              >
-                View Portfolio
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => {
-                  setProfileData(null);
-                  setSelectedRepos([]);
-                  handleFetchProfile();
-                }}
-                loading={loadingProfile}
-              >
-                Regenerate Portfolio
-              </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-gray-900/40 p-6 rounded-2xl border border-gray-800 backdrop-blur-sm">
+              <div className="flex-1">
+                <h3 className="text-white font-semibold text-lg mb-1">Your Portfolio is Live</h3>
+                <p className="text-sm text-gray-400">View your live portfolio or regenerate it to pull fresh data from GitHub.</p>
+              </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-xl border border-gray-700 transition-colors"
+                  onClick={() => navigate(`/${portfolio.slug}`)}
+                >
+                  <FiEye /> View Live
+                </button>
+                <button
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold rounded-xl transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)]"
+                  onClick={() => {
+                    setProfileData(null);
+                    setSelectedRepos([]);
+                    handleFetchProfile();
+                  }}
+                  disabled={loadingProfile}
+                >
+                  <FiRefreshCw className={loadingProfile ? "animate-spin" : ""} /> 
+                  Regenerate
+                </button>
+              </div>
             </div>
 
             {loadingProfile && (
-              <div className="py-8">
+              <div className="py-12 flex justify-center">
                 <LoadingSpinner size="lg" />
               </div>
             )}
 
             {profileData && !loadingProfile && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-white">Select Repositories</h2>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6 bg-gray-900/30 p-6 sm:p-8 rounded-3xl border border-gray-800"
+              >
+                <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-1">Select Repositories</h2>
+                    <p className="text-sm text-gray-400">Choose the projects you want to feature</p>
+                  </div>
+                  <span className="text-sm font-medium text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+                    {selectedRepos.length} selected
+                  </span>
+                </div>
+                
                 <RepoSelector
                   repos={repos}
                   selectedRepos={selectedRepos}
                   onToggle={handleRepoToggle}
                 />
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={handleGeneratePortfolio}
-                  loading={generating}
-                  disabled={selectedRepos.length === 0}
-                >
-                  Regenerate Portfolio
-                </Button>
-              </div>
+                
+                <div className="pt-4 border-t border-gray-800">
+                  <button
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleGeneratePortfolio}
+                    disabled={generating || selectedRepos.length === 0}
+                  >
+                    {generating ? (
+                      <><LoadingSpinner size="sm" /> Generating AI Content...</>
+                    ) : (
+                      <><FiZap /> Confirm & Regenerate Portfolio</>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-8"
+          >
             {authProvider !== AUTH_PROVIDERS.GITHUB && (
-              <div className="flex items-end gap-3">
-                <Input
-                  label="GitHub Username"
-                  value={githubUsername}
-                  onChange={(e) => setGithubUsername(e.target.value)}
-                  placeholder="Enter your GitHub username"
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleFetchProfile}
-                  loading={loadingProfile}
-                  disabled={!githubUsername.trim()}
-                >
-                  Fetch Profile
-                </Button>
+              <div className="bg-gray-900/50 p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-xl backdrop-blur-sm">
+                <h2 className="text-xl font-bold text-white mb-2">Connect GitHub</h2>
+                <p className="text-gray-400 text-sm mb-6">Enter your GitHub username to fetch your profile and projects.</p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                    <input
+                      type="text"
+                      value={githubUsername}
+                      onChange={(e) => setGithubUsername(e.target.value)}
+                      placeholder="e.g. torvalds"
+                      className="w-full px-4 py-3 bg-gray-950/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+                  <button
+                    className="px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold rounded-xl transition-colors disabled:opacity-50 h-[46px] sm:h-auto"
+                    onClick={handleFetchProfile}
+                    disabled={loadingProfile || !githubUsername.trim()}
+                  >
+                    {loadingProfile ? "Fetching..." : "Fetch Profile"}
+                  </button>
+                </div>
+                {profileError && <p className="text-red-400 text-sm mt-3">{profileError}</p>}
               </div>
             )}
 
-            {profileError && (
-              <p className="text-red-400 text-sm">{profileError}</p>
+            {loadingProfile && (
+              <div className="py-12 flex justify-center">
+                <LoadingSpinner size="lg" />
+              </div>
             )}
-
-            {loadingProfile && <LoadingSpinner size="lg" />}
 
             {profileData && !loadingProfile && (
-              <>
-                <ProfileCard profileData={profileData} />
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-8"
+              >
+                <ProfileCard profileData={profileData} username={githubUsername} />
 
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-white">
-                    Select Repositories to Showcase
-                  </h2>
+                <div className="bg-gray-900/30 p-6 sm:p-8 rounded-3xl border border-gray-800">
+                  <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-6">
+                    <div>
+                      <h2 className="text-xl font-bold text-white mb-1">Select Repositories to Showcase</h2>
+                      <p className="text-sm text-gray-400">Choose the projects you want AI to analyze and feature.</p>
+                    </div>
+                    <span className="text-sm font-medium text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+                      {selectedRepos.length} selected
+                    </span>
+                  </div>
+                  
                   <RepoSelector
                     repos={repos}
                     selectedRepos={selectedRepos}
                     onToggle={handleRepoToggle}
                   />
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleGeneratePortfolio}
-                    loading={generating}
-                    disabled={selectedRepos.length === 0}
-                  >
-                    Generate Portfolio
-                  </Button>
+                  
+                  <div className="pt-6 border-t border-gray-800 mt-6">
+                    <button
+                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleGeneratePortfolio}
+                      disabled={generating || selectedRepos.length === 0}
+                    >
+                      {generating ? (
+                        <><LoadingSpinner size="sm" /> Analyzing Code & Generating Portfolio...</>
+                      ) : (
+                        <><FiZap /> Generate Magic Portfolio</>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
