@@ -26,7 +26,7 @@ import {
   generateProjectDescriptions,
   extractSkills,
   parseProfileReadme,
-} from "../services/gemini";
+} from "../services/groqllm";
 import { savePortfolio, saveUsernameMapping, getPortfolio } from "../services/firestore";
 
 const STEPS = [
@@ -307,7 +307,7 @@ export default function Dashboard() {
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <button
                       onClick={() => navigate(`/portfolio/${existingPortfolio.username}`)}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-dark"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary/90"
                     >
                       <FaExternalLinkAlt />
                       View Portfolio
@@ -369,7 +369,7 @@ export default function Dashboard() {
                   <button
                     onClick={() => handleGeneratePortfolio(false)}
                     disabled={loading || (isGithubAuth && !githubUsernameFromAuth && !githubUsername.trim())}
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
                   >
                     <FaRocket />
                     Generate Portfolio
@@ -433,7 +433,7 @@ export default function Dashboard() {
                   <button
                     onClick={() => handleGeneratePortfolio(false)}
                     disabled={loading || !githubUsername.trim()}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3 font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3 font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
                   >
                     <FaRocket />
                     Generate Portfolio

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaGoogle, FaGithub, FaEnvelope, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaGoogle, FaGithub, FaEnvelope, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { APP_NAME } from "../utils/constants";
+import Loader from "../components/common/Loader";
 
 export default function Login() {
   const [isSignup, setIsSignup] = useState(false);
@@ -26,7 +27,6 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   }
@@ -39,7 +39,6 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   }
@@ -52,6 +51,7 @@ export default function Login() {
       if (isSignup) {
         if (!displayName.trim()) {
           setError("Please enter your name.");
+          setLoading(false);
           return;
         }
         await signupWithEmail(email, password, displayName);
@@ -61,9 +61,12 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
+  }
+
+  if (loading) {
+    return <Loader />;
   }
 
   return (
@@ -81,7 +84,10 @@ export default function Login() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Header */}
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center relative">
+          <Link to="/" className="absolute left-0 top-1 text-text-muted hover:text-text-primary transition-colors flex items-center gap-2">
+            <FaArrowLeft /> <span className="text-sm hidden sm:inline">Back</span>
+          </Link>
           <Link to="/" className="text-3xl font-bold text-text-primary">
             {APP_NAME}
           </Link>
@@ -188,7 +194,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
+              className="mt-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
               {loading
                 ? "Please wait..."

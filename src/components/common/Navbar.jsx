@@ -73,7 +73,7 @@ export default function Navbar() {
           ) : (
             <Link
               to="/login"
-              className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+              className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
             >
               Get Started
             </Link>
@@ -136,7 +136,7 @@ export default function Navbar() {
                 <Link
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg bg-primary px-5 py-2 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+                  className="rounded-lg bg-primary px-5 py-2 text-center text-sm font-semibold text-white transition-colors hover:bg-primary/90"
                 >
                   Get Started
                 </Link>

@@ -1,34 +1,40 @@
-import { GEMINI_API_BASE } from "../utils/constants";
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 /**
- * Call the Gemini API with a prompt and get a text response.
- * @param {string} prompt - The prompt to send to Gemini
+ * Call the Groq API with a prompt and get a text response.
+ * @param {string} prompt - The prompt to send to Groq
  * @returns {Promise<string>} The generated text response
  */
-async function callGemini(prompt) {
-  const response = await fetch(
-    `${GEMINI_API_BASE}/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }],
-          },
-        ],
-      }),
-    }
-  );
+async function callGroqAI(prompt) {
+  if (!GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is not configured in environment variables.");
+  }
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${GROQ_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000
+    })
+  });
 
   if (!response.ok) {
-    throw new Error("Gemini API request failed.");
+    throw new Error("Groq API request failed.");
   }
 
   const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return data.choices?.[0]?.message?.content || "";
 }
 
 /**
@@ -48,7 +54,7 @@ Followers: ${profileData.followers}
 
 Return only the bio text, no quotes or labels.`;
 
-  return callGemini(prompt);
+  return callGroqAI(prompt);
 }
 
 /**
@@ -70,12 +76,14 @@ export async function generateProjectDescriptions(repos) {
 Repositories:
 ${repoSummaries}
 
-Return a JSON array of objects with "name" and "description" fields. Return only valid JSON, no markdown formatting.`;
+Return a JSON array of objects with "name" and "description" fields. Return only valid JSON, no markdown formatting at all.`;
 
-  const result = await callGemini(prompt);
+  const result = await callGroqAI(prompt);
 
   try {
-    return JSON.parse(result);
+    // Attempt to strip any markdown backticks if the model returned them
+    const cleanedResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanedResult);
   } catch {
     // If parsing fails, return the repos with original descriptions
     return repos.slice(0, 10).map((r) => ({
@@ -103,12 +111,13 @@ export async function extractSkills(repos) {
 Languages: ${languages.join(", ")}
 Topics: ${topics.join(", ")}
 
-Return a JSON array of skill strings (e.g., ["JavaScript", "React", "Node.js", "REST APIs"]). Include frameworks, tools, and technologies that can be inferred. Return only valid JSON, no markdown.`;
+Return a JSON array of skill strings (e.g., ["JavaScript", "React", "Node.js", "REST APIs"]). Include frameworks, tools, and technologies that can be inferred. Return only valid JSON, no markdown formatting at all.`;
 
-  const result = await callGemini(prompt);
+  const result = await callGroqAI(prompt);
 
   try {
-    return JSON.parse(result);
+    const cleanedResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanedResult);
   } catch {
     // Fallback to raw languages
     return languages;
@@ -128,12 +137,13 @@ export async function parseProfileReadme(readmeContent) {
 README content:
 ${readmeContent.substring(0, 3000)}
 
-Return a JSON object with keys like "education", "achievements", "experience", "certifications" where each value is an array of items. If a section doesn't exist, omit it. Return only valid JSON, no markdown.`;
+Return a JSON object with keys like "education", "achievements", "experience", "certifications" where each value is an array of items. If a section doesn't exist, omit it. Return only valid JSON, no markdown formatting at all.`;
 
-  const result = await callGemini(prompt);
+  const result = await callGroqAI(prompt);
 
   try {
-    return JSON.parse(result);
+    const cleanedResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanedResult);
   } catch {
     return null;
   }
