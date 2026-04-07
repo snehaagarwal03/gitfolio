@@ -19,7 +19,7 @@ import Loader from "../components/common/Loader";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
 import { getPortfolio, updatePortfolio } from "../services/firestore";
-import { fetchGitHubRepos, fetchProfileReadme } from "../services/github";
+import { fetchGitHubRepos, fetchProfileReadme, fetchRepoReadme } from "../services/github";
 import { generateDetailedResumeData } from "../services/groqllm";
 import {
   Dialog,
@@ -74,12 +74,25 @@ export default function Resume() {
       const apiToken = githubAccessToken || import.meta.env.VITE_GITHUB_TOKEN || null;
       const username = portfolio.username;
       
-      const [repos, readmeContent] = await Promise.all([
-        fetchGitHubRepos(username, 30, apiToken),
+      // Fetch profile README + top repos in parallel
+      const [repos, profileReadme] = await Promise.all([
+        fetchGitHubRepos(username, 20, apiToken),
         fetchProfileReadme(username, apiToken)
       ]);
       
-      const detailedData = await generateDetailedResumeData(readmeContent, repos);
+      // For each top-5 repo, fetch its own README (in parallel, silent fail)
+      const topRepos = repos.slice(0, 5);
+      const repoReadmes = await Promise.all(
+        topRepos.map(r => fetchRepoReadme(r.owner?.login || username, r.name, apiToken))
+      );
+      
+      // Attach README content to each repo object
+      const enrichedRepos = topRepos.map((repo, i) => ({
+        ...repo,
+        readme: repoReadmes[i] || null,
+      }));
+      
+      const detailedData = await generateDetailedResumeData(profileReadme, enrichedRepos);
       if (detailedData) {
         const updatedReadmeSections = {
           ...(portfolio.readmeSections || {}),
@@ -90,7 +103,7 @@ export default function Resume() {
       }
     } catch (err) {
       console.error("Failed to generate detailed resume:", err);
-      alert("Failed to generate detailed resume. Please try again.");
+      alert("Failed to generate detailed resume: " + (err.message || "Please try again."));
     } finally {
       setGeneratingDetail(false);
     }
@@ -208,9 +221,19 @@ export default function Resume() {
               transition={{ duration: 0.5 }}
               className="resume-paper mx-auto bg-white rounded-lg shadow-2xl relative overflow-hidden ring-1 ring-border"
               style={{ minHeight: "1056px", padding: "48px 56px", fontSize: `${currentFontSize.current}px` }}
-              contentEditable
+              contentEditable={!generatingDetail}
               suppressContentEditableWarning
             >
+              {/* AI Generation Overlay */}
+              {generatingDetail && (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-10 gap-4">
+                  <FaSpinner className="animate-spin text-4xl text-blue-500" />
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-gray-900">Generating AI Resume…</p>
+                    <p className="text-sm text-gray-500 mt-1">Fetching READMEs and parsing with Llama AI.<br />This takes 30–60 seconds.</p>
+                  </div>
+                </div>
+              )}
               <div className="text-gray-900 font-[Inter,sans-serif]">
                 {/* Header - Name & Contact */}
                 <div className="mb-1">

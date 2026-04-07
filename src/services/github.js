@@ -237,6 +237,25 @@ export async function fetchProfileReadme(username, token = null) {
 }
 
 /**
+ * Fetch the README for a specific repository.
+ * @param {string} owner - Repository owner login
+ * @param {string} repo - Repository name
+ * @param {string} [token] - Optional GitHub token
+ * @returns {Promise<string|null>} README text or null
+ */
+export async function fetchRepoReadme(owner, repo, token = null) {
+  try {
+    const headers = buildHeaders(token);
+    headers.Accept = "application/vnd.github.v3.raw";
+    const response = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/readme`, { headers });
+    if (!response.ok) return null;
+    return response.text();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch an Authenticated User (REST fallback wrapper)
  */
 export async function fetchAuthenticatedUser(accessToken) {

@@ -150,45 +150,107 @@ Return a JSON object with keys like "education", "achievements", "experience", "
 }
 
 /**
- * Perform a deep, highly-detailed extraction specifically meant for filling out a full-page Resume text document.
- * @param {string} readmeContent - Raw README markdown content
- * @param {Array} repos - Array of GitHub repository objects
- * @returns {Promise<Object>} Deeply extracted sections { education, experience, achievements, certifications, detailedProjects }
+ * Perform a deep, highly-detailed two-pass extraction for filling out a full Resume.
+ * Pass 1: Extract Education & Experience from profile README.
+ * Pass 2: For each repo (with its own README), generate 3 bullet-point project descriptions.
+ *
+ * @param {string} profileReadme - Raw profile README markdown
+ * @param {Array} repos - Array of GitHub repository objects (each may have a .readme property)
+ * @returns {Promise<Object>} { education, experience, achievements, certifications, detailedProjects }
  */
-export async function generateDetailedResumeData(readmeContent, repos) {
-  const repoSummaries = repos
-    .slice(0, 5) // Limit to top 5 repos for resume
-    .map(
-      (r) =>
-        `- ${r.name}: ${r.description || "No description"} (${r.language || "Unknown"}, ${r.stargazers_count} stars)`
-    )
-    .join("\n");
+export async function generateDetailedResumeData(profileReadme, repos) {
 
-  const prompt = `You are an expert technical recruiter preparing a professional software engineering resume. 
-Using the provided GitHub README and Repositories, extract and generate highly detailed, bulleted lists for each traditional Resume section.
+  // ── Pass 1: Extract structured sections from the profile README ──────────────
+  const profilePrompt = `You are an expert technical recruiter parsing a developer's GitHub profile README to build a professional resume.
 
 README content:
-${readmeContent ? readmeContent.substring(0, 3000) : "No README provided."}
+${profileReadme ? profileReadme.substring(0, 4000) : "No README found."}
 
-Repositories:
-${repoSummaries}
+Task: Extract structured resume sections. Return ONLY valid JSON (no markdown, no backticks) with this exact schema:
+{
+  "education": [
+    { "institution": "University Name", "degree": "B.Tech Computer Science", "date": "2020-2024", "gpa": "8.5" }
+  ],
+  "experience": [
+    { "title": "Job Title", "company": "Company Name", "date": "Jan 2023 - Present", "description": ["Bullet 1 with action verb...", "Bullet 2...", "Bullet 3..."] }
+  ],
+  "achievements": ["Achievement 1", "Achievement 2"],
+  "certifications": ["Cert 1", "Cert 2"]
+}
+Rules:
+- If no experience exists, create one entry called "Open Source Developer" with 3-4 strong action-verb bullets based on what you can infer from the README.
+- All bullet points must start with a strong action verb (Built, Engineered, Developed, Optimized, Architected, etc.).
+- If a section is not found, return an empty array for that key.
+- Return ONLY the JSON object, nothing else.`;
 
-Format Requirements:
-1. "experience": Look for work history. If none clearly exists, infer related experience or summarize their major open-source context as a "Software Developer" role. For each role, provide an array "description" containing 3-4 highly technical, action-oriented bullet points (e.g. "Engineered...", "Architected...", "Optimized...").
-2. "education": Extract any education. If none, return empty array.
-3. "detailedProjects": For each repository listed above, write an array "description" of exactly 3 technical, action-oriented bullet points outlining the technologies used, the problem solved, and the impact or functionality.
-4. "achievements" & "certifications": Extract arrays of strings if present.
+  // ── Pass 2: Generate rich project descriptions for each repo ──────────────────
+  const projectPrompts = repos.slice(0, 5).map(async (repo) => {
+    const repoContext = `
+Repository: ${repo.name}
+Description: ${repo.description || "No description"}
+Language: ${repo.language || "Unknown"}
+Stars: ${repo.stargazers_count || 0}
+Topics: ${(repo.topics || []).join(", ") || "None"}
+README excerpt:
+${repo.readme ? repo.readme.substring(0, 1500) : "No README available."}`;
 
-Return a JSON object with keys: "experience", "education", "detailedProjects", "achievements", "certifications".
-Return exactly and ONLY valid JSON, no markdown code blocks like \`\`\`json.`;
+    const prompt = `Write exactly 3 technical, action-verb bullet points for this GitHub repository to put on a resume.
+Focus on: what it does, which technologies were used, and what problem it solves or its impact.
 
-  const result = await callGroqAI(prompt);
+${repoContext}
 
-  try {
-    const cleanedResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
-    return JSON.parse(cleanedResult);
-  } catch (err) {
-    console.error("Failed to parse detailed resume response:", err);
-    return null;
-  }
+Rules:
+- Each bullet must start with a strong action verb (Built, Developed, Implemented, Designed, etc.)
+- Use specific technical terms from the repo context
+- Keep each bullet to one concise sentence
+- Return ONLY a JSON array of 3 strings. Example: ["Built...", "Implemented...", "Designed..."]
+- No markdown, no backticks, just the JSON array.`;
+
+    try {
+      const result = await callGroqAI(prompt);
+      const cleaned = result.replace(/```json/g, '').replace(/```/g, '').trim();
+      const bullets = JSON.parse(cleaned);
+      return {
+        name: repo.name,
+        language: repo.language,
+        stars: repo.stargazers_count,
+        url: repo.html_url || repo.url,
+        homepage: repo.homepage || null,
+        topics: repo.topics || [],
+        description: Array.isArray(bullets) ? bullets : [repo.description || "A GitHub project."],
+      };
+    } catch {
+      return {
+        name: repo.name,
+        language: repo.language,
+        stars: repo.stargazers_count,
+        url: repo.html_url || repo.url,
+        homepage: repo.homepage || null,
+        topics: repo.topics || [],
+        description: [repo.description || "A GitHub project."],
+      };
+    }
+  });
+
+  // Run both passes in parallel
+  const [profileResult, detailedProjects] = await Promise.all([
+    callGroqAI(profilePrompt).then(result => {
+      try {
+        const cleaned = result.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleaned);
+      } catch (err) {
+        console.error("Failed to parse profile sections:", err);
+        return { education: [], experience: [], achievements: [], certifications: [] };
+      }
+    }),
+    Promise.all(projectPrompts)
+  ]);
+
+  return {
+    education: profileResult.education || [],
+    experience: profileResult.experience || [],
+    achievements: profileResult.achievements || [],
+    certifications: profileResult.certifications || [],
+    detailedProjects,
+  };
 }
