@@ -114,7 +114,7 @@ export default function Portfolio() {
 
   function handleCopyShareLink() {
     const slug = portfolio.customUrl || portfolio.username || username;
-    const url = `${window.location.origin}/p/${slug}`;
+    const url = `${window.location.origin}/${slug}`;
     navigator.clipboard.writeText(url);
     setShareFeedback("Link copied to clipboard!");
     setTimeout(() => setShareFeedback(""), 3000);
@@ -482,9 +482,16 @@ export default function Portfolio() {
             <motion.div 
               initial={{ opacity: 0, y: -20 }} 
               animate={{ opacity: 1, y: 0 }}
-              className={layoutMode === "classic" ? "flex flex-col md:flex-row md:items-center justify-between gap-8" : ""}
+              className={layoutMode === "classic" ? "flex flex-col items-start gap-6" : "flex flex-col"}
             >
-              <div className="order-2 md:order-1 flex-1">
+              <div className="order-1">
+                <Avatar className={`border-4 border-background shadow-xl ${layoutMode === "classic" ? "h-32 w-32 md:h-40 md:w-40" : "h-32 w-32 mb-4"}`}>
+                  <AvatarImage src={avatarUrl} alt={name} />
+                  <AvatarFallback className="text-4xl">{name?.charAt(0) || "?"}</AvatarFallback>
+                </Avatar>
+              </div>
+
+              <div className="order-2 w-full">
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-foreground" style={layoutMode === 'classic' ? themedText : {}}>
                   {name || username}
                 </h1>
@@ -507,13 +514,6 @@ export default function Portfolio() {
                   {twitterUsername && <a href={`https://twitter.com/${twitterUsername}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#1DA1F2] transition-colors p-2 bg-card rounded-full border border-border"><FaTwitter size={18} /></a>}
                   {blog && <a href={blog.startsWith("http") ? blog : `https://${blog}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors p-2 bg-card rounded-full border border-border"><FaExternalLinkAlt size={16} /></a>}
                 </div>
-              </div>
-
-              <div className={`order-1 md:order-2 ${layoutMode === "classic" ? "flex-shrink-0" : ""}`}>
-                <Avatar className={`border-4 border-background shadow-2xl ${layoutMode === "classic" ? "h-40 w-40 md:h-56 md:w-56" : "h-32 w-32 mb-4"}`}>
-                  <AvatarImage src={avatarUrl} alt={name} />
-                  <AvatarFallback className="text-4xl">{name?.charAt(0) || "?"}</AvatarFallback>
-                </Avatar>
               </div>
             </motion.div>
           </div>
@@ -672,7 +672,7 @@ export default function Portfolio() {
                 <div className="flex items-center space-x-2">
                   <div className="flex-1 flex items-center rounded-md border border-input bg-transparent px-3 py-1 shadow-sm transition-colors focus-within:border-primary">
                     <span className="text-muted-foreground text-sm border-r border-border pr-2 mr-2">
-                      {window.location.host}/p/
+                      {window.location.host}/
                     </span>
                     <input
                       type="text"
@@ -700,7 +700,7 @@ export default function Portfolio() {
               <div className="flex items-center relative">
                 <Input 
                   readOnly 
-                  value={`${window.location.origin}/p/${portfolio.customUrl || portfolio.username || username}`} 
+                  value={`${window.location.origin}/${portfolio.customUrl || portfolio.username || username}`} 
                   className="pr-12 bg-secondary/50 font-mono text-xs"
                 />
                 <Button 

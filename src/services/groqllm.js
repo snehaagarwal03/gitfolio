@@ -148,3 +148,47 @@ Return a JSON object with keys like "education", "achievements", "experience", "
     return null;
   }
 }
+
+/**
+ * Perform a deep, highly-detailed extraction specifically meant for filling out a full-page Resume text document.
+ * @param {string} readmeContent - Raw README markdown content
+ * @param {Array} repos - Array of GitHub repository objects
+ * @returns {Promise<Object>} Deeply extracted sections { education, experience, achievements, certifications, detailedProjects }
+ */
+export async function generateDetailedResumeData(readmeContent, repos) {
+  const repoSummaries = repos
+    .slice(0, 5) // Limit to top 5 repos for resume
+    .map(
+      (r) =>
+        `- ${r.name}: ${r.description || "No description"} (${r.language || "Unknown"}, ${r.stargazers_count} stars)`
+    )
+    .join("\n");
+
+  const prompt = `You are an expert technical recruiter preparing a professional software engineering resume. 
+Using the provided GitHub README and Repositories, extract and generate highly detailed, bulleted lists for each traditional Resume section.
+
+README content:
+${readmeContent ? readmeContent.substring(0, 3000) : "No README provided."}
+
+Repositories:
+${repoSummaries}
+
+Format Requirements:
+1. "experience": Look for work history. If none clearly exists, infer related experience or summarize their major open-source context as a "Software Developer" role. For each role, provide an array "description" containing 3-4 highly technical, action-oriented bullet points (e.g. "Engineered...", "Architected...", "Optimized...").
+2. "education": Extract any education. If none, return empty array.
+3. "detailedProjects": For each repository listed above, write an array "description" of exactly 3 technical, action-oriented bullet points outlining the technologies used, the problem solved, and the impact or functionality.
+4. "achievements" & "certifications": Extract arrays of strings if present.
+
+Return a JSON object with keys: "experience", "education", "detailedProjects", "achievements", "certifications".
+Return exactly and ONLY valid JSON, no markdown code blocks like \`\`\`json.`;
+
+  const result = await callGroqAI(prompt);
+
+  try {
+    const cleanedResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanedResult);
+  } catch (err) {
+    console.error("Failed to parse detailed resume response:", err);
+    return null;
+  }
+}

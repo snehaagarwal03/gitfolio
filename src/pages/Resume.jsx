@@ -12,12 +12,15 @@ import {
   FaExternalLinkAlt,
   FaCircle,
   FaRocket,
+  FaSpinner,
 } from "react-icons/fa";
 import Navbar from "../components/common/Navbar";
 import Loader from "../components/common/Loader";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
-import { getPortfolio } from "../services/firestore";
+import { getPortfolio, updatePortfolio } from "../services/firestore";
+import { fetchGitHubRepos, fetchProfileReadme } from "../services/github";
+import { generateDetailedResumeData } from "../services/groqllm";
 import {
   Dialog,
   DialogContent,
@@ -28,9 +31,10 @@ import {
 import { Input } from "../components/ui/input";
 
 export default function Resume() {
-  const { user } = useAuth();
+  const { user, githubAccessToken } = useAuth();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [generatingDetail, setGeneratingDetail] = useState(false);
   const resumeRef = useRef(null);
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -61,6 +65,35 @@ export default function Resume() {
 
   function handleDownloadPDF() {
     window.print();
+  }
+
+  async function handleGenerateDetailedResume() {
+    if (!portfolio || !user) return;
+    try {
+      setGeneratingDetail(true);
+      const apiToken = githubAccessToken || import.meta.env.VITE_GITHUB_TOKEN || null;
+      const username = portfolio.username;
+      
+      const [repos, readmeContent] = await Promise.all([
+        fetchGitHubRepos(username, 30, apiToken),
+        fetchProfileReadme(username, apiToken)
+      ]);
+      
+      const detailedData = await generateDetailedResumeData(readmeContent, repos);
+      if (detailedData) {
+        const updatedReadmeSections = {
+          ...(portfolio.readmeSections || {}),
+          ...detailedData
+        };
+        await updatePortfolio(user.uid, { readmeSections: updatedReadmeSections });
+        setPortfolio(prev => ({ ...prev, readmeSections: updatedReadmeSections }));
+      }
+    } catch (err) {
+      console.error("Failed to generate detailed resume:", err);
+      alert("Failed to generate detailed resume. Please try again.");
+    } finally {
+      setGeneratingDetail(false);
+    }
   }
 
   function increaseFontSize() {
@@ -263,28 +296,47 @@ export default function Resume() {
                 )}
 
                 {/* PROJECTS */}
-                {projects.length > 0 && (
+                {((readmeSections?.detailedProjects && readmeSections.detailedProjects.length > 0) || projects.length > 0) && (
                   <div className="mt-4">
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-800 pb-0.5 mb-2">
-                      Projects
+                       Projects
                     </h3>
                     <div className="space-y-3">
-                      {projects.slice(0, 5).map((project) => (
-                        <div key={project.name} className="text-xs text-gray-700">
-                          <div className="flex items-baseline gap-2">
-                            <h4 className="font-bold text-[#0ea5e9]">{project.name}</h4>
-                            <span className="text-gray-500 italic">
-                              — {[project.language, ...(project.topics?.slice(0, 3) || [])].filter(Boolean).join(", ")}
-                            </span>
+                      {readmeSections?.detailedProjects?.length > 0 ? (
+                        // Render detailed projects from AI deep parse
+                        readmeSections.detailedProjects.slice(0, 4).map((project, idx) => (
+                           <div key={idx} className="text-xs text-gray-700">
+                             <h4 className="font-bold text-[#0ea5e9]">
+                               {project.name || project.title || "Project"}
+                             </h4>
+                             {project.description && (
+                               <ul className="list-[circle] ml-5 mt-1 space-y-0.5">
+                                 {(Array.isArray(project.description) ? project.description : [project.description]).map((d, j) => (
+                                   <li key={j}>{d}</li>
+                                 ))}
+                               </ul>
+                             )}
+                           </div>
+                        ))
+                      ) : (
+                        // Fallback to standard portfolio shallow projects
+                        projects.slice(0, 4).map((project) => (
+                          <div key={project.name} className="text-xs text-gray-700">
+                            <div className="flex items-baseline gap-2">
+                              <h4 className="font-bold text-[#0ea5e9]">{project.name}</h4>
+                              <span className="text-gray-500 italic">
+                                — {[project.language, ...(project.topics?.slice(0, 3) || [])].filter(Boolean).join(", ")}
+                              </span>
+                            </div>
+                            <ul className="list-[circle] ml-5 mt-1 space-y-0.5">
+                              <li>{project.description || "A GitHub project."}</li>
+                              {project.stars > 0 && (
+                                <li>⭐ {project.stars} stars on GitHub</li>
+                              )}
+                            </ul>
                           </div>
-                          <ul className="list-[circle] ml-5 mt-1 space-y-0.5">
-                            <li>{project.description || "A GitHub project."}</li>
-                            {project.stars > 0 && (
-                              <li>⭐ {project.stars} stars on GitHub</li>
-                            )}
-                          </ul>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
@@ -457,7 +509,15 @@ export default function Resume() {
             <div className="mx-1 h-5 w-px bg-border" />
 
             {/* Actions */}
-
+            <button
+              onClick={handleGenerateDetailedResume}
+              disabled={generatingDetail}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+              title="Enhance Resume Data with AI"
+            >
+              {generatingDetail ? <FaSpinner className="w-3 h-3 animate-spin" /> : <FaRocket size={12} />}
+              <span className="hidden sm:inline">{generatingDetail ? "Generating..." : "Generate AI Resume"}</span>
+            </button>
             <button
               onClick={handleDownloadPDF}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

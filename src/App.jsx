@@ -54,6 +54,9 @@ function App() {
               }
             />
 
+            {/* Catch-all username route (must be before 404) */}
+            <Route path="/:username" element={<Portfolio />} />
+
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
