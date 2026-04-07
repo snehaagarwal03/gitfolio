@@ -50,10 +50,16 @@ export async function getPortfolioByUsername(usernameOrCustomUrl) {
   
   // Step 1: Look up by custom URL alias first
   let mappingRef = doc(db, "portfoliosByCustomUrl", key);
-  let mappingSnap = await getDoc(mappingRef);
+  let mappingSnap = null;
+  
+  try {
+    mappingSnap = await getDoc(mappingRef);
+  } catch (err) {
+    console.warn("Could not read portfoliosByCustomUrl, falling back to username. Ensure firestore rules are updated:", err);
+  }
 
   // Step 2: If not found, look up by GitHub username alias
-  if (!mappingSnap.exists()) {
+  if (!mappingSnap || !mappingSnap.exists()) {
     mappingRef = doc(db, "portfoliosByUsername", key);
     mappingSnap = await getDoc(mappingRef);
   }
