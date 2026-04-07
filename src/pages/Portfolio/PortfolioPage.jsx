@@ -37,7 +37,6 @@ export default function PortfolioPage() {
           setError("Portfolio not found or unauthorized");
           return;
         }
-
         setPortfolio(data);
         const sectionData = await getPortfolioSections(data.id);
         const sorted = sectionData.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -103,10 +102,10 @@ export default function PortfolioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#02040a]">
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
         <div className="text-center flex flex-col items-center">
           <LoadingSpinner size="xl" />
-          <p className="mt-6 text-gray-400 font-medium animate-pulse">Initializing Portfolio Engine...</p>
+          <p className="mt-6 text-slate-500 text-sm font-medium animate-pulse">Loading portfolio...</p>
         </div>
       </div>
     );
@@ -114,12 +113,12 @@ export default function PortfolioPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#02040a]">
-        <div className="text-center bg-gray-900/50 p-12 rounded-3xl border border-gray-800">
-          <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 mb-4">404</h1>
-          <p className="text-gray-400 mb-8 text-lg">{error}</p>
-          <Link to="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold rounded-xl transition-all">
-            <FiArrowLeft /> Back to Dashboard
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+        <div className="text-center p-10">
+          <h1 className="text-5xl font-black gradient-text mb-3">404</h1>
+          <p className="text-slate-400 mb-6">{error}</p>
+          <Link to="/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold text-sm rounded-xl transition-all">
+            <FiArrowLeft size={16} /> Back to Dashboard
           </Link>
         </div>
       </div>
@@ -129,63 +128,64 @@ export default function PortfolioPage() {
   const isDark = portfolioTheme === "dark";
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 relative ${isDark ? "bg-[#02040a] text-white" : "bg-gray-50 text-gray-900"}`}>
-      {/* Floating Editor Controls */}
-      <motion.div 
+    <div className={`min-h-screen transition-colors duration-500 relative ${isDark ? "bg-[#030712] text-white" : "bg-gray-50 text-gray-900"}`}>
+      {/* Floating Editor Toolbar */}
+      <motion.div
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-6 inset-x-0 z-50 pointer-events-none flex justify-center px-4"
+        transition={{ type: "spring", stiffness: 260, damping: 30 }}
+        className="fixed top-4 inset-x-0 z-50 pointer-events-none flex justify-center px-4"
       >
-        <div className="pointer-events-auto bg-gray-900/80 backdrop-blur-xl border border-gray-700/50 shadow-[0_10px_40px_rgba(0,0,0,0.5)] rounded-2xl px-4 py-3 flex items-center gap-3 sm:gap-6 w-full max-w-3xl">
+        <div className="pointer-events-auto glass-strong rounded-2xl px-3 py-2 flex items-center gap-2 sm:gap-4 w-full max-w-2xl shadow-2xl">
           <Link
             to="/dashboard"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
+            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white transition-colors shrink-0"
             title="Back to Dashboard"
           >
-            <FiArrowLeft size={18} />
+            <FiArrowLeft size={16} />
           </Link>
-          
-          <div className="h-6 w-px bg-gray-700 hidden sm:block" />
-          
-          <div className="flex-1 flex items-center gap-3">
+
+          <div className="h-5 w-px bg-white/[0.06] hidden sm:block" />
+
+          <div className="flex-1 flex items-center min-w-0">
             <span className="text-sm font-semibold text-white truncate hidden sm:block">
-              {username}'s <span className="text-emerald-400">Portfolio</span>
+              {username}&apos;s <span className="text-emerald-400">Portfolio</span>
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <ThemeToggle />
-            
+
             <Link to={`/${username}/resume`}>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-xl border border-gray-700 transition-colors">
-                <FiFileText className="hidden sm:block" /> Resume
+              <button className="flex items-center gap-1.5 px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 text-xs font-medium rounded-lg border border-white/[0.06] transition-colors">
+                <FiFileText size={13} className="hidden sm:block" /> Resume
               </button>
             </Link>
 
             <button
               onClick={() => setEditMode(!editMode)}
-              className={`flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-xl transition-all shadow-lg ${
-                editMode 
-                  ? "bg-emerald-500 hover:bg-emerald-400 text-gray-900 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
-                  : "bg-indigo-500 hover:bg-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                editMode
+                  ? "bg-emerald-500 hover:bg-emerald-400 text-gray-900"
+                  : "bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/[0.06]"
               }`}
             >
-              {editMode ? <><FiCheck /> Done</> : <><FiEdit3 /> Edit</>}
+              {editMode ? <><FiCheck size={14} /> Done</> : <><FiEdit3 size={14} /> Edit</>}
             </button>
           </div>
         </div>
       </motion.div>
 
       {/* Main Portfolio Content */}
-      <div className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto relative z-10">
-        <div className="space-y-24">
+      <div className="pt-28 pb-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto relative z-10">
+        <div className="space-y-20">
           <AnimatePresence>
             {sections.map((section, index) => (
-              <motion.div 
+              <motion.div
                 key={section.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.08 }}
                 className="relative group"
               >
                 <PortfolioSection
@@ -203,17 +203,17 @@ export default function PortfolioPage() {
 
         <AnimatePresence>
           {editMode && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-20 pt-10 border-t border-gray-800/50 flex justify-center"
+              className="mt-16 pt-8 border-t border-white/[0.04] flex justify-center"
             >
-              <button 
+              <button
                 onClick={() => setShowAddSection(true)}
-                className="flex items-center gap-2 px-8 py-4 bg-gray-900/50 hover:bg-gray-800 text-emerald-400 hover:text-emerald-300 font-bold rounded-2xl border-2 border-dashed border-gray-700 hover:border-emerald-500/50 transition-all"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-900/50 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 font-semibold text-sm rounded-xl border-2 border-dashed border-white/[0.08] hover:border-emerald-500/30 transition-all"
               >
-                <FiPlus size={20} /> Add New Section
+                <FiPlus size={18} /> Add New Section
               </button>
             </motion.div>
           )}

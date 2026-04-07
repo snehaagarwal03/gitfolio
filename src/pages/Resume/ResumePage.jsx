@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiDownload, FiSave, FiZap, FiSettings, FiArrowLeft, FiSliders, FiType, FiEye } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { FiDownload, FiSave, FiZap, FiArrowLeft, FiType, FiFileText } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import {
   getPortfolioByUsername,
@@ -33,10 +33,8 @@ export default function ResumePage() {
           setLoading(false);
           return;
         }
-
         const sectionData = await getPortfolioSections(portfolio.id);
         setSections(sectionData);
-
         const config = await getResumeConfig(portfolio.id);
         setResumeConfig(
           config || {
@@ -53,20 +51,17 @@ export default function ResumePage() {
         setLoading(false);
       }
     }
-
     loadResume();
   }, [username, user]);
 
   async function handleGenerateResume() {
     setGenerating(true);
     setError("");
-
     try {
       const portfolioData = sections.reduce((acc, section) => {
         acc[section.type] = section.content;
         return acc;
       }, {});
-
       const data = await generateResumeContent(portfolioData);
       setResumeData(data);
     } catch (err) {
@@ -100,7 +95,7 @@ export default function ResumePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#02040a]">
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -108,11 +103,11 @@ export default function ResumePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#02040a]">
-        <div className="text-center bg-gray-900/50 p-12 rounded-3xl border border-gray-800">
-          <h1 className="text-4xl font-bold text-white mb-4">Oops!</h1>
-          <p className="text-gray-400 mb-8">{error}</p>
-          <Link to="/dashboard" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold rounded-xl transition-all">
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+        <div className="text-center p-10">
+          <h1 className="text-5xl font-black gradient-text mb-3">Oops!</h1>
+          <p className="text-slate-400 mb-6">{error}</p>
+          <Link to="/dashboard" className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold text-sm rounded-xl transition-all">
             Back to Dashboard
           </Link>
         </div>
@@ -126,175 +121,183 @@ export default function ResumePage() {
   const textStyle = resumeConfig?.textStyle || "normal";
 
   return (
-    <div className="min-h-screen bg-[#02040a] flex flex-col lg:flex-row print:bg-white print:block">
-      
-      {/* Left Sidebar: Controls (Hidden in Print) */}
-      <div className="w-full lg:w-[400px] shrink-0 border-b lg:border-b-0 lg:border-r border-gray-800 bg-gray-950/80 backdrop-blur-xl relative z-20 print:hidden h-auto lg:h-screen lg:sticky lg:top-0 overflow-y-auto custom-scrollbar">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-8 text-gray-400 hover:text-white transition-colors w-fit">
-            <Link to={`/${username}`} className="flex items-center gap-2 text-sm font-medium">
-              <FiArrowLeft /> Back to Portfolio
+    <div className="min-h-screen bg-[#030712] flex flex-col lg:flex-row print:bg-white print:block">
+
+      {/* Left Sidebar: Controls */}
+      <div className="w-full lg:w-[360px] shrink-0 border-b lg:border-b-0 lg:border-r border-white/[0.04] bg-slate-950/80 backdrop-blur-xl print:hidden h-auto lg:h-screen lg:sticky lg:top-0 overflow-y-auto">
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div>
+            <Link to={`/${username}`} className="flex items-center gap-2 text-xs text-slate-500 hover:text-white transition-colors mb-5">
+              <FiArrowLeft size={13} /> Back to Portfolio
             </Link>
-          </div>
-
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2 mb-2">
-              <FiFileText className="text-emerald-500" /> Resume Builder
+            <h1 className="text-xl font-bold text-white flex items-center gap-2.5 mb-1.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <FiFileText className="text-emerald-500" size={16} />
+              </div>
+              Resume Builder
             </h1>
-            <p className="text-sm text-gray-400">Generate, customize, and export your resume as a clean PDF.</p>
+            <p className="text-xs text-slate-500">Generate, customize, and export your resume as PDF.</p>
           </div>
 
-          <div className="space-y-4 mb-8">
+          {/* Actions */}
+          <div className="space-y-3">
             <button
               onClick={handleGenerateResume}
               disabled={generating}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
             >
-              {generating ? <LoadingSpinner size="sm" /> : <FiZap />}
-              {resumeData ? "Regenerate Content" : "Generate Resume"}
+              {generating ? <LoadingSpinner size="sm" /> : <FiZap size={15} />}
+              {resumeData ? "Regenerate" : "Generate Resume"}
             </button>
 
             <button
               onClick={handleDownloadPDF}
               disabled={!resumeData}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl border border-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl border border-white/[0.06] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <FiDownload /> Download PDF
+              <FiDownload size={15} /> Download PDF
             </button>
           </div>
 
-          {/* Settings Panel */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 text-white font-semibold pb-2 border-b border-gray-800">
-              <FiSliders className="text-emerald-500" /> Appearance
-            </div>
+          {/* Settings */}
+          <div className="space-y-5 pt-2 border-t border-white/[0.04]">
+            <h3 className="text-sm font-semibold text-white">Appearance</h3>
 
-            <div className="space-y-5">
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-                  <FiType /> Font Family
-                </label>
-                <select
-                  value={resumeConfig?.fontFamily || "Inter"}
-                  onChange={(e) => handleConfigChange("fontFamily", e.target.value)}
-                  className="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500 transition-shadow"
-                >
-                  <option value="Inter">Inter (Sans Serif)</option>
-                  <option value="Roboto">Roboto (Sans Serif)</option>
-                  <option value="Merriweather">Merriweather (Sans Serif)</option>
-                  <option value="Lora">Lora (Serif)</option>
-                  <option value="Playfair Display">Playfair Display (Serif)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
-                  <span>Base Font Size</span>
-                  <span className="text-emerald-500">{resumeConfig?.fontSize || 14}px</span>
-                </label>
-                <input
-                  type="range"
-                  min="12"
-                  max="18"
-                  step="1"
-                  value={resumeConfig?.fontSize || 14}
-                  onChange={(e) => handleConfigChange("fontSize", parseInt(e.target.value))}
-                  className="w-full accent-emerald-500"
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
-                  <span>Heading Color</span>
-                  <span className="text-xs uppercase bg-gray-800 px-2 py-1 rounded">{resumeConfig?.headingColor || "#0f172a"}</span>
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={resumeConfig?.headingColor || "#0f172a"}
-                    onChange={(e) => handleConfigChange("headingColor", e.target.value)}
-                    className="w-10 h-10 rounded cursor-pointer bg-gray-900 border-0"
-                  />
-                  <div className="flex gap-2">
-                    {["#0f172a", "#1e40af", "#065f46", "#7f1d1d"].map(color => (
-                      <button
-                        key={color}
-                        onClick={() => handleConfigChange("headingColor", color)}
-                        className={`w-8 h-8 rounded-full border-2 ${resumeConfig?.headingColor === color ? 'border-white' : 'border-transparent'}`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Text Weight</label>
-                <div className="flex bg-gray-900 rounded-lg p-1 border border-gray-800">
-                  <button
-                    onClick={() => handleConfigChange("textStyle", "normal")}
-                    className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${resumeConfig?.textStyle === "normal" ? "bg-gray-700 text-white font-medium" : "text-gray-400 hover:text-white"}`}
-                  >
-                    Normal
-                  </button>
-                  <button
-                    onClick={() => handleConfigChange("textStyle", "bold")}
-                    className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${resumeConfig?.textStyle === "bold" ? "bg-gray-700 text-white font-medium" : "text-gray-400 hover:text-white"}`}
-                  >
-                    <span className="font-bold">Bold</span>
-                  </button>
-                  <button
-                    onClick={() => handleConfigChange("textStyle", "light")}
-                    className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${resumeConfig?.textStyle === "light" ? "bg-gray-700 text-white font-medium" : "text-gray-400 hover:text-white"}`}
-                  >
-                    <span className="font-light">Light</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <label className="flex items-center gap-3 text-sm text-gray-300 cursor-pointer group">
-                  <div className="relative flex items-center justify-center">
-                    <input
-                      type="checkbox"
-                      checked={resumeConfig?.showHyperlinks !== false}
-                      onChange={(e) => handleConfigChange("showHyperlinks", e.target.checked)}
-                      className="sr-only"
-                    />
-                    <div className={`w-10 h-5 bg-gray-800 rounded-full border border-gray-700 transition-colors ${resumeConfig?.showHyperlinks !== false ? 'bg-emerald-500/20 border-emerald-500/50' : ''}`} />
-                    <div className={`absolute left-1 w-3.5 h-3.5 bg-gray-400 rounded-full transition-transform ${resumeConfig?.showHyperlinks !== false ? 'translate-x-4 bg-emerald-400' : ''}`} />
-                  </div>
-                  Show links & icons
-                </label>
-              </div>
-
-              <button
-                onClick={handleSaveConfig}
-                disabled={saving}
-                className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-xl border border-gray-700 transition-colors disabled:opacity-50"
+            {/* Font Family */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-1.5">
+                <FiType size={12} /> Font Family
+              </label>
+              <select
+                value={resumeConfig?.fontFamily || "Inter"}
+                onChange={(e) => handleConfigChange("fontFamily", e.target.value)}
+                className="w-full px-3 py-2.5 bg-slate-900 border border-white/[0.06] rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500/50 transition-shadow"
               >
-                {saving ? <LoadingSpinner size="sm" /> : <FiSave />} Save Settings
-              </button>
+                <option value="Inter">Inter (Sans Serif)</option>
+                <option value="Roboto">Roboto (Sans Serif)</option>
+                <option value="Lora">Lora (Serif)</option>
+                <option value="Playfair Display">Playfair Display (Serif)</option>
+              </select>
             </div>
+
+            {/* Font Size */}
+            <div>
+              <label className="flex items-center justify-between text-xs font-medium text-slate-400 mb-1.5">
+                <span>Font Size</span>
+                <span className="text-emerald-400 font-mono">{resumeConfig?.fontSize || 14}px</span>
+              </label>
+              <input
+                type="range"
+                min="12"
+                max="18"
+                step="1"
+                value={resumeConfig?.fontSize || 14}
+                onChange={(e) => handleConfigChange("fontSize", parseInt(e.target.value))}
+                className="w-full accent-emerald-500 h-1.5"
+              />
+            </div>
+
+            {/* Heading Color */}
+            <div>
+              <label className="flex items-center justify-between text-xs font-medium text-slate-400 mb-1.5">
+                <span>Heading Color</span>
+                <span className="text-xs font-mono text-slate-500">{resumeConfig?.headingColor || "#0f172a"}</span>
+              </label>
+              <div className="flex items-center gap-2.5">
+                <input
+                  type="color"
+                  value={resumeConfig?.headingColor || "#0f172a"}
+                  onChange={(e) => handleConfigChange("headingColor", e.target.value)}
+                  className="w-9 h-9 rounded-lg cursor-pointer bg-slate-900 border border-white/[0.06] shrink-0"
+                />
+                <div className="flex gap-1.5">
+                  {["#0f172a", "#1e40af", "#065f46", "#7f1d1d"].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => handleConfigChange("headingColor", color)}
+                      className={`w-7 h-7 rounded-md border-2 transition-all ${
+                        resumeConfig?.headingColor === color ? "border-white scale-110" : "border-transparent hover:border-slate-600"
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Text Weight */}
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Text Weight</label>
+              <div className="flex bg-slate-900 rounded-lg p-1 border border-white/[0.06]">
+                {[
+                  { val: "light", label: "Light", weight: "font-light" },
+                  { val: "normal", label: "Normal", weight: "font-normal" },
+                  { val: "bold", label: "Bold", weight: "font-bold" },
+                ].map((opt) => (
+                  <button
+                    key={opt.val}
+                    onClick={() => handleConfigChange("textStyle", opt.val)}
+                    className={`flex-1 py-1.5 text-xs rounded-md transition-colors ${opt.weight} ${
+                      resumeConfig?.textStyle === opt.val
+                        ? "bg-slate-700 text-white"
+                        : "text-slate-500 hover:text-white"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Hyperlinks Toggle */}
+            <div className="pt-1">
+              <label className="flex items-center gap-3 text-xs text-slate-400 cursor-pointer group">
+                <div className="relative flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={resumeConfig?.showHyperlinks !== false}
+                    onChange={(e) => handleConfigChange("showHyperlinks", e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`w-9 h-5 rounded-full transition-colors duration-200 ${
+                    resumeConfig?.showHyperlinks !== false ? "bg-emerald-500/20" : "bg-slate-800"
+                  }`} />
+                  <div className={`absolute left-0.5 w-4 h-4 rounded-full transition-transform duration-200 ${
+                    resumeConfig?.showHyperlinks !== false ? "translate-x-4 bg-emerald-400" : "bg-slate-500"
+                  }`} />
+                </div>
+                Show links &amp; icons
+              </label>
+            </div>
+
+            {/* Save */}
+            <button
+              onClick={handleSaveConfig}
+              disabled={saving}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-xl border border-white/[0.06] transition-colors disabled:opacity-50"
+            >
+              {saving ? <LoadingSpinner size="sm" /> : <FiSave size={14} />} Save Settings
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Right Side: Resume Preview (White Paper) */}
-      <div className="flex-1 overflow-y-auto bg-gray-950 p-4 sm:p-8 flex justify-center print:p-0 print:bg-white print:overflow-visible">
+      {/* Right Side: Resume Preview */}
+      <div className="flex-1 overflow-y-auto bg-slate-950 p-4 sm:p-8 lg:p-12 flex justify-center print:p-0 print:bg-white print:overflow-visible">
         {resumeData ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-[210mm] min-h-[297mm] bg-white text-gray-900 shadow-2xl print:shadow-none print:w-full print:max-w-none"
-            style={{ 
-              fontFamily: `"${fontFamily}", sans-serif`, 
+            className="w-full max-w-[210mm] min-h-[297mm] bg-white text-gray-900 shadow-2xl rounded-lg print:shadow-none print:rounded-none print:w-full print:max-w-none"
+            style={{
+              fontFamily: `"${fontFamily}", sans-serif`,
               fontSize: `${fontSize}px`,
-              fontWeight: textStyle === "bold" ? 600 : textStyle === "light" ? 300 : 400
+              fontWeight: textStyle === "bold" ? 600 : textStyle === "light" ? 300 : 400,
             }}
           >
             <div className="p-10 sm:p-12 print:p-0">
-              {/* HEADER */}
+              {/* Header */}
               <div className="mb-8 border-b-2 pb-6" style={{ borderColor: headingColor }}>
                 <h1 className="text-4xl font-black tracking-tight mb-2 uppercase" style={{ color: headingColor }}>
                   {resumeData.header?.name || "Your Name"}
@@ -304,39 +307,28 @@ export default function ResumePage() {
                 </p>
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
                   {resumeData.header?.contact?.email && (
-                    <span className="flex items-center gap-1.5">
-                      {resumeConfig?.showHyperlinks !== false && <FiMail className="opacity-70" />}
-                      {resumeData.header.contact.email}
-                    </span>
+                    <span>{resumeData.header.contact.email}</span>
                   )}
                   {resumeData.header?.contact?.github && (
-                    <span className="flex items-center gap-1.5">
-                      {resumeConfig?.showHyperlinks !== false && <FiGithub className="opacity-70" />}
-                      {resumeData.header.contact.github}
-                    </span>
+                    <span>{resumeData.header.contact.github}</span>
                   )}
                   {resumeData.header?.contact?.website && (
-                    <span className="flex items-center gap-1.5">
-                      {resumeConfig?.showHyperlinks !== false && <FiLayout className="opacity-70" />}
-                      {resumeData.header.contact.website}
-                    </span>
+                    <span>{resumeData.header.contact.website}</span>
                   )}
                 </div>
               </div>
 
-              {/* SUMMARY */}
+              {/* Summary */}
               {resumeData.summary && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold uppercase tracking-wider mb-2 pb-1 border-b" style={{ color: headingColor, borderColor: `${headingColor}30` }}>
                     Summary
                   </h2>
-                  <p className="text-gray-700 leading-relaxed text-justify">
-                    {resumeData.summary}
-                  </p>
+                  <p className="text-gray-700 leading-relaxed text-justify">{resumeData.summary}</p>
                 </div>
               )}
 
-              {/* EXPERIENCE */}
+              {/* Experience */}
               {resumeData.experience?.length > 0 && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold uppercase tracking-wider mb-3 pb-1 border-b" style={{ color: headingColor, borderColor: `${headingColor}30` }}>
@@ -361,11 +353,11 @@ export default function ResumePage() {
                 </div>
               )}
 
-              {/* SKILLS */}
+              {/* Skills */}
               {resumeData.skills && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold uppercase tracking-wider mb-3 pb-1 border-b" style={{ color: headingColor, borderColor: `${headingColor}30` }}>
-                    Skills & Technologies
+                    Skills &amp; Technologies
                   </h2>
                   <div className="grid grid-cols-1 gap-2 text-gray-700">
                     {Object.entries(resumeData.skills).map(([category, items]) => (
@@ -378,7 +370,7 @@ export default function ResumePage() {
                 </div>
               )}
 
-              {/* PROJECTS */}
+              {/* Projects */}
               {resumeData.projects?.length > 0 && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold uppercase tracking-wider mb-3 pb-1 border-b" style={{ color: headingColor, borderColor: `${headingColor}30` }}>
@@ -391,7 +383,7 @@ export default function ResumePage() {
                         <p className="text-gray-700 leading-snug mb-1 text-justify">{proj.description}</p>
                         {proj.tech && (
                           <p className="text-gray-500 italic" style={{ fontSize: `${fontSize - 2}px` }}>
-                            <span className="font-medium not-italic text-gray-600">Tech:</span> {Array.isArray(proj.tech) ? proj.tech.join(" • ") : proj.tech}
+                            <span className="font-medium not-italic text-gray-600">Tech:</span> {Array.isArray(proj.tech) ? proj.tech.join(" | ") : proj.tech}
                           </p>
                         )}
                       </div>
@@ -400,7 +392,7 @@ export default function ResumePage() {
                 </div>
               )}
 
-              {/* EDUCATION */}
+              {/* Education */}
               {resumeData.education?.length > 0 && (
                 <div className="mb-2">
                   <h2 className="text-lg font-bold uppercase tracking-wider mb-3 pb-1 border-b" style={{ color: headingColor, borderColor: `${headingColor}30` }}>
@@ -422,20 +414,20 @@ export default function ResumePage() {
             </div>
           </motion.div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full max-w-md text-center py-20 print:hidden">
-            <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center text-emerald-500 mb-6 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
-              <FiFileText size={32} />
+          <div className="flex flex-col items-center justify-center h-full max-w-sm text-center py-20 print:hidden">
+            <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 mb-5">
+              <FiFileText size={28} />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Resume Not Generated</h2>
-            <p className="text-gray-400 mb-8">
-              Click the "Generate Resume" button in the sidebar to create your beautiful resume layout based on your portfolio data.
+            <h2 className="text-xl font-bold text-white mb-2">No Resume Yet</h2>
+            <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+              Click &quot;Generate Resume&quot; to create a clean, professional resume from your portfolio data.
             </p>
             <button
               onClick={handleGenerateResume}
               disabled={generating}
-              className="flex items-center justify-center gap-2 px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold rounded-xl transition-all"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-gray-900 text-sm font-bold rounded-xl transition-all"
             >
-              {generating ? <LoadingSpinner size="sm" /> : <FiZap />} Generate Now
+              {generating ? <LoadingSpinner size="sm" /> : <FiZap size={15} />} Generate Now
             </button>
           </div>
         )}

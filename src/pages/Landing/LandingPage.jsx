@@ -1,260 +1,625 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { FiGithub, FiZap, FiLayout, FiFileText, FiCheckCircle, FiChevronRight } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiGithub,
+  FiZap,
+  FiLayout,
+  FiFileText,
+  FiLayers,
+  FiEdit3,
+  FiDownload,
+  FiCheckCircle,
+  FiChevronRight,
+  FiChevronDown,
+  FiStar,
+  FiArrowRight,
+} from "react-icons/fi";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
 };
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
 export default function LandingPage() {
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      question: "Do I need to know how to code?",
+      answer:
+        "Not at all! GitFolio is designed for developers of all skill levels. Simply connect your GitHub account, and our AI handles everything from analyzing your code to generating compelling portfolio content. You can customize the output using our intuitive visual editor without writing a single line of code.",
+    },
+    {
+      question: "Can I edit the generated content?",
+      answer:
+        "Absolutely! You have full control over every aspect of your portfolio and resume. Edit project descriptions, add custom sections for experience and education, tweak the layout, and fine-tune the AI-generated content to perfectly match your personal brand and career goals.",
+    },
+    {
+      question: "Is the resume ATS friendly?",
+      answer:
+        "Yes, all our resume templates are specifically designed to be ATS (Applicant Tracking System) compatible. We use clean, parseable formatting with proper heading structures and standard fonts. The PDF export maintains this compatibility while still looking professional and modern.",
+    },
+    {
+      question: "Can I use a custom domain?",
+      answer:
+        "Custom domain support is available on our Pro plan. You can connect your own domain (like yourname.dev) to your GitFolio portfolio with simple DNS configuration. We provide step-by-step instructions to make the process seamless.",
+    },
+  ];
+
+  const steps = [
+    {
+      step: 1,
+      title: "Connect GitHub",
+      description:
+        "Sign in with your GitHub account and securely authorize GitFolio to access your public repositories, profile information, and contribution stats.",
+      icon: FiGithub,
+    },
+    {
+      step: 2,
+      title: "AI Generation",
+      description:
+        "Our advanced AI analyzes your code, commits, and project structure to craft compelling descriptions, highlight your skills, and generate professional content.",
+      icon: FiZap,
+    },
+    {
+      step: 3,
+      title: "Customize & Export",
+      description:
+        "Fine-tune your portfolio with our visual editor, choose from stunning themes, and export your polished resume as a PDF ready for job applications.",
+      icon: FiLayout,
+    },
+  ];
+
+  const features = [
+    {
+      icon: FiZap,
+      title: "AI-Powered Generation",
+      description:
+        "Leverage cutting-edge AI to automatically analyze your GitHub activity and generate compelling, personalized content that showcases your unique developer journey.",
+    },
+    {
+      icon: FiLayout,
+      title: "One-Click Portfolio",
+      description:
+        "Select your best repositories and instantly generate a fully responsive, modern portfolio website that looks great on every device and screen size.",
+    },
+    {
+      icon: FiFileText,
+      title: "Resume Builder",
+      description:
+        "Transform your GitHub profile and projects into a professional, ATS-friendly resume with beautiful formatting that recruiters and hiring managers love.",
+    },
+    {
+      icon: FiLayers,
+      title: "Theme Customization",
+      description:
+        "Choose from a curated collection of stunning themes and color palettes to make your portfolio uniquely yours and aligned with your personal brand.",
+    },
+    {
+      icon: FiEdit3,
+      title: "Editable Sections",
+      description:
+        "Add custom sections for work experience, education, certifications, and achievements using our intuitive rich text editor with full formatting support.",
+    },
+    {
+      icon: FiDownload,
+      title: "PDF Export",
+      description:
+        "Download your customized resume as a high-quality, print-ready PDF that maintains perfect formatting and is optimized for applicant tracking systems.",
+    },
+  ];
+
+  const pricing = {
+    hobby: {
+      name: "Hobby",
+      price: "$0",
+      period: "/mo",
+      features: [
+        "Basic AI Generation",
+        "Standard Theme",
+        "1 Portfolio Link",
+        "Community Support",
+      ],
+      cta: "Start for Free",
+      ctaLink: "/signup",
+      highlighted: false,
+    },
+    pro: {
+      name: "Pro",
+      price: "$9",
+      period: "/mo",
+      features: [
+        "Advanced AI Formatting",
+        "Premium Themes",
+        "Custom Domain Support",
+        "Remove Watermark",
+        "Priority Support",
+        "Unlimited Revisions",
+      ],
+      cta: "Get Pro",
+      ctaLink: "/signup",
+      highlighted: true,
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-[#02040a] selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="min-h-screen bg-[#030712] selection:bg-emerald-500/30 selection:text-emerald-200">
       {/* Background glow effects */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-500/20 blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-emerald-500/15 blur-[180px] rounded-full pointer-events-none" />
 
       {/* --- HERO SECTION --- */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden z-10">
-        <div className="max-w-5xl mx-auto text-center">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900 border border-gray-800 text-sm text-emerald-400 mb-8"
-          >
-            <FiZap className="animate-pulse" />
-            <span>GitFolio 2.0 is now live</span>
-          </motion.div>
-
-          <motion.h1
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl sm:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight"
-          >
-            Turn Your GitHub Into a <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-600 drop-shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-              Stunning Portfolio
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto"
-          >
-            GitFolio uses AI to transform your GitHub profile into a professional portfolio website and resume in seconds. Sign in, select your best projects, and let AI do the rest.
-          </motion.p>
-
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Link
-              to="/login"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 text-base font-semibold text-gray-900 bg-emerald-500 hover:bg-emerald-400 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_35px_rgba(16,185,129,0.6)] transition-all duration-300 transform hover:-translate-y-1"
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            {/* Announcement Badge */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-white/[0.06] text-sm text-slate-400 mb-8 backdrop-blur-sm"
             >
-              Get Started for Free <FiChevronRight />
-            </Link>
-            <a
-              href="#how-it-works"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 text-base font-semibold text-gray-300 bg-gray-900/50 hover:bg-gray-800 border border-gray-700 hover:border-gray-500 rounded-xl transition-all duration-300 backdrop-blur-sm"
+              <FiZap className="text-emerald-400 animate-pulse" />
+              <span>
+                <span className="text-emerald-400 font-medium">GitFolio 2.0</span> is now live
+              </span>
+            </motion.div>
+
+            {/* Main Headline */}
+            <motion.h1
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-50 tracking-tight mb-6 leading-[1.1]"
             >
-              Learn More
-            </a>
+              Turn Your GitHub Into a
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500">
+                Stunning Portfolio
+              </span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-lg sm:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed"
+            >
+              GitFolio uses advanced AI to transform your GitHub profile into a professional
+              portfolio website and resume in seconds. Connect your account, select your best
+              projects, and let our AI craft compelling content that showcases your unique
+              developer journey.
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Link
+                to="/signup"
+                className="group flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 text-base font-semibold text-slate-900 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 transform hover:-translate-y-0.5"
+              >
+                Get Started for Free
+                <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <button className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 text-base font-semibold text-slate-300 bg-slate-900/50 hover:bg-slate-800/50 border border-white/[0.06] hover:border-white/[0.12] rounded-xl transition-all duration-300 backdrop-blur-sm">
+                <FiZap className="text-emerald-400" />
+                Watch Demo
+              </button>
+            </motion.div>
+          </div>
+
+          {/* Floating Terminal Mockup */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="relative max-w-3xl mx-auto mt-16"
+          >
+            <div className="bg-slate-900/80 border border-white/[0.06] rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl">
+              {/* Terminal Header */}
+              <div className="flex items-center gap-2 px-4 py-3 bg-slate-900/50 border-b border-white/[0.06]">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                <span className="ml-4 text-sm text-slate-500 font-mono">portfolio.gitfolio.dev</span>
+              </div>
+              {/* Terminal Content */}
+              <div className="p-6 font-mono text-sm">
+                <div className="flex items-center gap-2 text-slate-400">
+                  <span className="text-emerald-400">$</span>
+                  <span>gitfolio generate --from github</span>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <FiCheckCircle className="text-emerald-400" />
+                    <span>Connected to GitHub successfully</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <FiCheckCircle className="text-emerald-400" />
+                    <span>Analyzing 42 repositories...</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <FiCheckCircle className="text-emerald-400" />
+                    <span>Generating portfolio content with AI...</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <FiZap className="animate-pulse" />
+                    <span className="font-medium">Portfolio ready!</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Decorative glow */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 blur-2xl rounded-3xl -z-10" />
           </motion.div>
         </div>
       </section>
 
       {/* --- HOW IT WORKS --- */}
-      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-gray-900 bg-gradient-to-b from-[#02040a] to-[#0a0f1c]">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">How It Works</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Three simple steps to your new professional developer presence.</p>
-          </div>
+      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-50 mb-4">How It Works</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+              Three simple steps to transform your GitHub presence into a professional portfolio
+              that stands out.
+            </p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Connecting line for desktop */}
-            <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-[2px] bg-gradient-to-r from-emerald-500/0 via-emerald-500/50 to-emerald-500/0 z-0" />
+          <div className="relative">
+            {/* Connecting dashed line */}
+            <div className="hidden lg:block absolute top-20 left-[16.67%] right-[16.67%] h-[2px]">
+              <div className="w-full h-full border-t-2 border-dashed border-white/[0.06]" />
+            </div>
 
-            {[
-              {
-                step: "01",
-                title: "Connect GitHub",
-                desc: "Authenticate securely and let GitFolio fetch your repositories, bio, and stats automatically.",
-                icon: <FiGithub size={24} />,
-              },
-              {
-                step: "02",
-                title: "AI Generation",
-                desc: "Our AI analyzes your code to write compelling project summaries and highlight your best skills.",
-                icon: <FiZap size={24} />,
-              },
-              {
-                step: "03",
-                title: "Customize & Export",
-                desc: "Tweak the design, switch themes, edit your resume, and export to PDF instantly.",
-                icon: <FiLayout size={24} />,
-              },
-            ].map((item, index) => (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                key={item.step}
-                className="relative z-10 flex flex-col items-center text-center p-8 rounded-2xl bg-gray-900/40 border border-gray-800 backdrop-blur-sm hover:border-emerald-500/30 transition-colors group"
-              >
-                <div className="w-16 h-16 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center text-emerald-400 font-bold text-xl mb-6 shadow-[0_0_15px_rgba(16,185,129,0.1)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all">
-                  {item.icon}
-                </div>
-                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {steps.map((step, index) => (
+                <motion.div
+                  key={step.step}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={staggerItem}
+                  transition={{ duration: 0.5, delay: index * 0.15 }}
+                  className="relative flex flex-col items-center text-center p-8"
+                >
+                  {/* Step number circle */}
+                  <div className="relative mb-6">
+                    <div className="w-16 h-16 rounded-full bg-slate-900/50 border border-white/[0.06] flex items-center justify-center backdrop-blur-sm">
+                      <step.icon className="w-7 h-7 text-emerald-400" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-bold text-slate-900">
+                      {step.step}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-slate-50 mb-3">{step.title}</h3>
+                  <p className="text-slate-400 leading-relaxed max-w-xs">{step.description}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* --- FEATURES --- */}
-      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-gray-900">
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-teal-500/10 blur-[150px] rounded-full pointer-events-none" />
+      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-50 mb-4">
+              Features Built for Developers
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+              Everything you need to create a stunning portfolio and professional resume, all in
+              one powerful platform.
+            </p>
+          </motion.div>
 
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Features Designed for Devs</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Everything you need to showcase your talent in one place.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: "AI-Powered Generation",
-                desc: "AI analyzes your GitHub profile to write tailored content, project descriptions, and summaries.",
-              },
-              {
-                title: "One-Click Portfolio",
-                desc: "Select your best repos and instantly generate a fully responsive, dark-mode ready portfolio.",
-              },
-              {
-                title: "Resume Builder",
-                desc: "Generate a clean, professional A4 resume from the exact same data source.",
-              },
-              {
-                title: "Theme Customization",
-                desc: "Switch between modern color themes to make your portfolio match your personal brand.",
-              },
-              {
-                title: "Editable Sections",
-                desc: "Easily add manual sections like experience, education, or achievements with our rich editor.",
-              },
-              {
-                title: "PDF Export",
-                desc: "Download your customized resume as a clean, ATS-friendly PDF ready for job applications.",
-              },
-            ].map((feature, i) => (
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {features.map((feature, index) => (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.05 }}
                 key={feature.title}
-                className="p-8 rounded-2xl bg-[#0a0f1c] border border-gray-800 hover:border-emerald-500/40 hover:bg-gray-900/80 transition-all duration-300"
+                variants={staggerItem}
+                whileHover={{ y: -4 }}
+                className="group p-8 rounded-2xl bg-slate-900/50 border border-white/[0.06] hover:border-emerald-500/30 hover:bg-slate-900/30 transition-all duration-300 backdrop-blur-sm"
               >
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
-                  <FiCheckCircle className="text-emerald-400 text-xl" />
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-5 group-hover:bg-emerald-500/20 transition-colors">
+                  <feature.icon className="w-6 h-6 text-emerald-400" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
+                <h3 className="text-lg font-bold text-slate-50 mb-3">{feature.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* --- PRICING --- */}
-      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-gray-900 bg-gradient-to-b from-[#0a0f1c] to-[#02040a]">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-gray-400 mb-12">Start for free, upgrade when you need more power.</p>
+      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-50 mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+              Start for free and upgrade when you need more features. No hidden fees, no surprises.
+            </p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Tier */}
-            <div className="p-8 rounded-3xl bg-gray-900/50 border border-gray-800 text-left hover:border-gray-600 transition-colors">
-              <h3 className="text-2xl font-bold text-white mb-2">Hobby</h3>
-              <div className="text-4xl font-extrabold text-white mb-6">$0<span className="text-lg text-gray-500 font-normal">/mo</span></div>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3 text-gray-300"><FiCheckCircle className="text-emerald-500" /> Basic AI Generation</li>
-                <li className="flex items-center gap-3 text-gray-300"><FiCheckCircle className="text-emerald-500" /> Standard Theme</li>
-                <li className="flex items-center gap-3 text-gray-300"><FiCheckCircle className="text-emerald-500" /> 1 Portfolio Link</li>
-              </ul>
-              <Link to="/signup" className="block w-full py-3 px-4 text-center rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold transition-colors">
-                Start for Free
-              </Link>
-            </div>
-
-            {/* Pro Tier */}
-            <div className="p-8 rounded-3xl bg-gradient-to-b from-gray-900 to-gray-900 border border-emerald-500/50 text-left relative shadow-[0_0_40px_rgba(16,185,129,0.1)] transform md:-translate-y-4">
-              <div className="absolute top-0 right-8 -translate-y-1/2 px-3 py-1 bg-emerald-500 text-gray-900 text-xs font-bold rounded-full uppercase tracking-wider">
-                Recommended
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            {/* Hobby Plan */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              className="p-8 rounded-2xl bg-slate-900/50 border border-white/[0.06] backdrop-blur-sm hover:bg-slate-800/50 transition-all duration-300"
+            >
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-slate-50 mb-2">{pricing.hobby.name}</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-slate-50">
+                    {pricing.hobby.price}
+                  </span>
+                  <span className="text-slate-500">{pricing.hobby.period}</span>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-emerald-400 mb-2">Pro</h3>
-              <div className="text-4xl font-extrabold text-white mb-6">$9<span className="text-lg text-gray-500 font-normal">/mo</span></div>
+
               <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3 text-gray-300"><FiCheckCircle className="text-emerald-500" /> Advanced AI Formatting</li>
-                <li className="flex items-center gap-3 text-gray-300"><FiCheckCircle className="text-emerald-500" /> Premium Themes</li>
-                <li className="flex items-center gap-3 text-gray-300"><FiCheckCircle className="text-emerald-500" /> Custom Domain Support</li>
-                <li className="flex items-center gap-3 text-gray-300"><FiCheckCircle className="text-emerald-500" /> Remove Watermark</li>
+                {pricing.hobby.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-slate-300">
+                    <FiCheckCircle className="text-emerald-500 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
               </ul>
-              <Link to="/signup" className="block w-full py-3 px-4 text-center rounded-xl bg-emerald-500 hover:bg-emerald-400 text-gray-900 font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-colors">
-                Get Pro
+
+              <Link
+                to={pricing.hobby.ctaLink}
+                className="block w-full py-3.5 px-6 text-center rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-white/[0.06] text-slate-300 font-semibold transition-all duration-300"
+              >
+                {pricing.hobby.cta}
               </Link>
-            </div>
+            </motion.div>
+
+            {/* Pro Plan */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              transition={{ delay: 0.1 }}
+              className="relative p-8 rounded-2xl bg-slate-900/50 border border-emerald-500/30 backdrop-blur-sm shadow-lg shadow-emerald-500/10 md:-translate-y-4"
+            >
+              {/* Recommended Badge */}
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full">
+                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
+                  <FiStar className="w-4 h-4" />
+                  Recommended
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-emerald-400 mb-2">{pricing.pro.name}</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-slate-50">
+                    {pricing.pro.price}
+                  </span>
+                  <span className="text-slate-500">{pricing.pro.period}</span>
+                </div>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {pricing.pro.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-slate-300">
+                    <FiCheckCircle className="text-emerald-500 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                to={pricing.pro.ctaLink}
+                className="block w-full py-3.5 px-6 text-center rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-900 font-bold shadow-lg shadow-emerald-500/25 transition-all duration-300"
+              >
+                {pricing.pro.cta}
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* --- FAQs --- */}
-      <section id="faqs" className="py-24 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-gray-900">
+      <section id="faqs" className="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Frequently Asked Questions</h2>
-          </div>
-          <div className="space-y-6">
-            {[
-              { q: "Do I need to know how to code to use this?", a: "Not at all! GitFolio automatically pulls your data from GitHub and generates the website for you." },
-              { q: "Can I edit the generated content?", a: "Yes, you have full control. You can edit text, add new sections, and change themes anytime in the dashboard." },
-              { q: "Is the resume ATS friendly?", a: "Yes, our resume templates are designed specifically to be clean, parseable, and ATS-friendly." },
-            ].map((faq, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-gray-900/30 border border-gray-800">
-                <h3 className="text-lg font-semibold text-white mb-2">{faq.q}</h3>
-                <p className="text-gray-400">{faq.a}</p>
-              </div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-50 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-slate-400 text-lg">
+              Got questions? We have got answers. If you cannot find what you are looking for,
+              reach out to our support team.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="space-y-4"
+          >
+            {faqs.map((faq, index) => (
+              <motion.div
+                key={index}
+                variants={staggerItem}
+                className="rounded-2xl bg-slate-900/50 border border-white/[0.06] overflow-hidden backdrop-blur-sm"
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-800/30 transition-colors"
+                >
+                  <span className="text-lg font-semibold text-slate-50 pr-4">{faq.question}</span>
+                  <FiChevronDown
+                    className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform duration-300 ${
+                      openFaq === index ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {openFaq === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-6 pb-6 text-slate-400 leading-relaxed">
+                        {faq.answer}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* --- CTA --- */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 relative z-10 border-t border-gray-900 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/20 to-[#02040a]" />
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-5xl font-extrabold text-white mb-6">Ready to stand out?</h2>
-          <p className="text-xl text-gray-400 mb-10">Join thousands of developers building their professional brand with GitFolio.</p>
+      {/* --- CTA SECTION --- */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/20 via-emerald-900/10 to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-emerald-500/10 blur-[150px] rounded-full" />
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+          className="max-w-4xl mx-auto text-center relative z-10"
+        >
+          <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-50 mb-6">
+            Ready to stand out?
+          </h2>
+          <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
+            Join thousands of developers who have transformed their GitHub profiles into stunning
+            portfolios. Your dream job is just a few clicks away.
+          </p>
           <Link
             to="/signup"
-            className="inline-flex items-center justify-center gap-2 px-10 py-5 text-lg font-bold text-gray-900 bg-emerald-500 hover:bg-emerald-400 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:shadow-[0_0_50px_rgba(16,185,129,0.7)] transition-all transform hover:scale-105"
+            className="group inline-flex items-center justify-center gap-3 px-10 py-5 text-lg font-bold text-slate-900 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 rounded-xl shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 transform hover:scale-[1.02]"
           >
             Create Your Portfolio Now
+            <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
           </Link>
+        </motion.div>
+      </section>
+
+      {/* --- ABOUT SECTION --- */}
+      <section id="about" className="py-24 px-4 sm:px-6 lg:px-8 relative border-t border-white/[0.04]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-50 mb-4">About GitFolio</h2>
+            <p className="text-slate-400 max-w-3xl mx-auto text-lg leading-relaxed">
+              GitFolio was built by developers, for developers. We understand the challenge of
+              showcasing your work effectively while job hunting or building your personal brand.
+              Our mission is to eliminate the friction between your GitHub contributions and a
+              professional online presence. Using cutting-edge AI technology, we analyze your code,
+              extract meaningful insights, and present your skills in the most compelling way
+              possible.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16"
+          >
+            {[
+              { number: "10K+", label: "Portfolios Created" },
+              { number: "500K+", label: "Repos Analyzed" },
+              { number: "98%", label: "Satisfaction Rate" },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                variants={staggerItem}
+                className="text-center p-8 rounded-2xl bg-slate-900/30 border border-white/[0.06]"
+              >
+                <div className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-slate-400 font-medium">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
     </div>

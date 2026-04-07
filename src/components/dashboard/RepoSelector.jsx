@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiStar, FiGitBranch, FiCode, FiSearch, FiCheckCircle } from "react-icons/fi";
+import { FiStar, FiGitBranch, FiSearch, FiCheck } from "react-icons/fi";
 
 export default function RepoSelector({ repos, selectedRepos, onToggle }) {
   const [search, setSearch] = useState("");
@@ -10,84 +10,86 @@ export default function RepoSelector({ repos, selectedRepos, onToggle }) {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="relative max-w-md">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <FiSearch className="text-gray-500" />
+    <div className="space-y-4">
+      <div className="relative max-w-sm">
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+          <FiSearch className="text-slate-500" size={15} />
         </div>
         <input
           type="text"
           placeholder="Search repositories..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-3 bg-gray-900/60 border border-gray-800 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 backdrop-blur-sm transition-all"
+          className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-white/[0.06] rounded-xl text-white text-sm placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
         />
       </div>
 
       {repos.length === 0 ? (
-        <div className="text-center py-12 px-4 border border-gray-800 border-dashed rounded-2xl bg-gray-900/30">
-          <p className="text-gray-400 font-medium">No repositories found.</p>
-          <p className="text-sm text-gray-500 mt-2">Make sure your GitHub account has public repositories.</p>
+        <div className="text-center py-10 px-4 border border-dashed border-white/[0.08] rounded-xl bg-slate-900/20">
+          <p className="text-slate-500 text-sm font-medium">No repositories found.</p>
+          <p className="text-xs text-slate-600 mt-1">Make sure your GitHub account has public repositories.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[420px] overflow-y-auto pr-1 pb-2">
           <AnimatePresence>
             {filteredRepos.map((repo) => {
               const isSelected = selectedRepos.some((r) => r.name === repo.name);
-              
+
               return (
                 <motion.div
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
                   key={repo.name}
                   onClick={() => onToggle(repo)}
-                  className={`cursor-pointer group relative p-5 rounded-2xl border transition-all duration-300 backdrop-blur-sm
+                  className={`cursor-pointer group relative p-4 rounded-xl border transition-all duration-200
                     ${
                       isSelected
-                        ? "bg-emerald-900/20 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                        : "bg-gray-900/40 border-gray-800 hover:border-gray-600 hover:bg-gray-900/80"
+                        ? "bg-emerald-500/[0.08] border-emerald-500/30"
+                        : "bg-slate-900/30 border-white/[0.04] hover:border-white/[0.1] hover:bg-slate-900/60"
                     }
                   `}
                 >
                   {/* Selection Indicator */}
-                  <div className="absolute top-4 right-4">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
-                      isSelected ? "border-emerald-500 bg-emerald-500 text-gray-900" : "border-gray-600 group-hover:border-emerald-500/50"
+                  <div className="absolute top-3.5 right-3.5">
+                    <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all duration-200 ${
+                      isSelected
+                        ? "border-emerald-500 bg-emerald-500 text-gray-900"
+                        : "border-slate-700 group-hover:border-emerald-500/40"
                     }`}>
-                      {isSelected && <FiCheckCircle size={14} />}
+                      {isSelected && <FiCheck size={12} strokeWidth={3} />}
                     </div>
                   </div>
 
                   <div className="pr-8">
-                    <h3 className={`text-base font-bold truncate mb-2 transition-colors ${
-                      isSelected ? "text-emerald-400" : "text-white group-hover:text-emerald-300"
+                    <h3 className={`text-sm font-semibold truncate mb-1.5 transition-colors ${
+                      isSelected ? "text-emerald-400" : "text-white group-hover:text-slate-200"
                     }`}>
                       {repo.name}
                     </h3>
-                    <p className="text-sm text-gray-400 line-clamp-2 min-h-[40px] mb-4">
+                    <p className="text-xs text-slate-500 line-clamp-2 min-h-[32px] mb-3">
                       {repo.description || "No description provided."}
                     </p>
-                    
-                    <div className="flex items-center gap-4 text-xs font-medium text-gray-500">
+
+                    <div className="flex items-center gap-3 text-xs text-slate-600">
                       {repo.primaryLanguage?.name && (
                         <div className="flex items-center gap-1.5">
-                          <span 
-                            className="w-2.5 h-2.5 rounded-full" 
-                            style={{ backgroundColor: repo.primaryLanguage.color || "#10b981" }} 
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: repo.primaryLanguage.color || "#10b981" }}
                           />
-                          {repo.primaryLanguage.name}
+                          <span>{repo.primaryLanguage.name}</span>
                         </div>
                       )}
                       {repo.stargazerCount > 0 && (
-                        <div className="flex items-center gap-1.5 hover:text-yellow-500 transition-colors">
-                          <FiStar /> {repo.stargazerCount}
+                        <div className="flex items-center gap-1">
+                          <FiStar size={11} /> {repo.stargazerCount}
                         </div>
                       )}
                       {repo.forkCount > 0 && (
-                        <div className="flex items-center gap-1.5 hover:text-emerald-500 transition-colors">
-                          <FiGitBranch /> {repo.forkCount}
+                        <div className="flex items-center gap-1">
+                          <FiGitBranch size={11} /> {repo.forkCount}
                         </div>
                       )}
                     </div>

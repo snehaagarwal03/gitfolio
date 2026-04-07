@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ui/ProtectedRoute";
 import PublicOnlyRoute from "./components/ui/PublicOnlyRoute";
 import LandingPage from "./pages/Landing/LandingPage";
 import LoginPage from "./pages/Login/LoginPage";
+import SignupPage from "./pages/Signup/SignupPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 import PortfolioPage from "./pages/Portfolio/PortfolioPage";
 import ResumePage from "./pages/Resume/ResumePage";
@@ -31,6 +32,14 @@ function App() {
                 element={
                   <PublicOnlyRoute>
                     <LoginPage />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <PublicOnlyRoute>
+                    <SignupPage />
                   </PublicOnlyRoute>
                 }
               />
