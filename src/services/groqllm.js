@@ -1,4 +1,4 @@
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const GROQ_API_KEY = import.meta.env.GROQ_API_KEY;
 
 /**
  * Call the Groq API with a prompt and get a text response.
