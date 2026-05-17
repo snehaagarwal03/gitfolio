@@ -105,7 +105,7 @@ export async function fetchGitHubUser(username, token = null) {
         public_repos: user.repositories.totalCount
       };
     }
-  } catch (err) {
+  } catch {
     // GraphQL fallback silent trigger
   }
 
@@ -169,7 +169,7 @@ export async function fetchGitHubRepos(username, perPage = 30, token = null) {
         owner: { login: repo.owner.login }
       }));
     }
-  } catch (err) {
+  } catch {
     // GraphQL fallback silent trigger
   }
 
@@ -206,7 +206,7 @@ export async function fetchProfileReadme(username, token = null) {
         return data.repository.object.text;
       }
     }
-  } catch (err) {
+  } catch {
     // GraphQL fallback silent trigger
   }
 
@@ -291,7 +291,7 @@ export async function fetchAuthenticatedRepos(accessToken, perPage = 30) {
       topics: repo.repositoryTopics.nodes.map(n => n.topic.name),
       owner: { login: repo.owner.login }
     }));
-  } catch (err) {
+  } catch {
     // GraphQL fallback silent trigger
     const response = await fetch(
       `${GITHUB_API_BASE}/user/repos?per_page=${perPage}&sort=updated&affiliation=owner`,
@@ -359,7 +359,7 @@ export async function calculateMostUsedLanguages(repos, token = null) {
         .sort((a, b) => b.bytes - a.bytes)
         .slice(0, 10);
     }
-  } catch (err) {
+  } catch {
     // GraphQL fallback silent trigger
   }
 
@@ -417,7 +417,7 @@ export async function fetchUserEvents(username, token = null) {
       const data = await fetchGraphQL(query, { username }, token);
       return { _graphQL: true, data: data.user.contributionsCollection.contributionCalendar };
     }
-  } catch (err) {
+  } catch {
     // GraphQL fallback silent trigger
   }
 

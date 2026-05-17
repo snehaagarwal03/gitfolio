@@ -181,12 +181,12 @@ export default function Portfolio() {
       else if (rand > 0.3) level = 1;
 
       if (level === 0) {
-        return <div key={i} className="w-3 h-3 rounded-[2px] bg-foreground/5" />;
+        return <div key={i} className="w-3 h-3 rounded-xs bg-foreground/5" />;
       }
       return (
         <div 
           key={i} 
-          className="w-3 h-3 rounded-[2px]" 
+          className="w-3 h-3 rounded-xs" 
           style={{ backgroundColor: baseHex, opacity: level * 0.25 + 0.1 }}
           title={`${level} contributions`}
         />
@@ -207,11 +207,11 @@ export default function Portfolio() {
             <span>{contributions.totalRecent || 0} contributions in the last year</span>
             <div className="flex items-center gap-1">
               Less 
-              <div className="w-3 h-3 rounded-[2px] bg-foreground/5 ml-1" />
-              <div className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: baseHex, opacity: 0.35 }} />
-              <div className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: baseHex, opacity: 0.60 }} />
-              <div className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: baseHex, opacity: 0.85 }} />
-              <div className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: baseHex, opacity: 1 }} />
+              <div className="w-3 h-3 rounded-xs bg-foreground/5 ml-1" />
+              <div className="w-3 h-3 rounded-xs" style={{ backgroundColor: baseHex, opacity: 0.35 }} />
+              <div className="w-3 h-3 rounded-xs" style={{ backgroundColor: baseHex, opacity: 0.60 }} />
+              <div className="w-3 h-3 rounded-xs" style={{ backgroundColor: baseHex, opacity: 0.85 }} />
+              <div className="w-3 h-3 rounded-xs" style={{ backgroundColor: baseHex, opacity: 1 }} />
               More
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function Portfolio() {
               </div>
             </CardContent>
             
-            <CardFooter className="p-5 pt-0 flex items-center justify-between gap-3 border-t border-border/30 mt-4 pt-4">
+            <CardFooter className="p-5 flex items-center justify-between gap-3 border-t border-border/30 mt-4 pt-4">
                <a href={project.url} target="_blank" rel="noopener noreferrer" className="flex-1">
                  <Button variant="outline" className="w-full text-xs h-8 gap-2 bg-background hover:bg-accent rounded-full border-border">
                    <FaGithub /> Code

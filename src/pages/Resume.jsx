@@ -50,8 +50,8 @@ export default function Resume() {
         setLoading(true);
         const data = await getPortfolio(user.uid);
         setPortfolio(data);
-      } catch (err) {
-        console.error("Failed to load portfolio for resume:", err);
+      } catch (error) {
+        console.error("Failed to load portfolio for resume:", error);
       } finally {
         setLoading(false);
       }
@@ -101,9 +101,9 @@ export default function Resume() {
         await updatePortfolio(user.uid, { readmeSections: updatedReadmeSections });
         setPortfolio(prev => ({ ...prev, readmeSections: updatedReadmeSections }));
       }
-    } catch (err) {
-      console.error("Failed to generate detailed resume:", err);
-      alert("Failed to generate detailed resume: " + (err.message || "Please try again."));
+    } catch (error) {
+      console.error("Failed to generate detailed resume:", error);
+      alert("Failed to generate detailed resume: " + (error.message || "Please try again."));
     } finally {
       setGeneratingDetail(false);
     }
@@ -156,9 +156,9 @@ export default function Resume() {
   // Extract data from portfolio
   const name = portfolio?.name || "Your Name";
   const email = portfolio?.email || user?.email || "";
-  const profileUrl = portfolio?.profileUrl || "";
+  // const profileUrl = portfolio?.profileUrl || "";
   const location = portfolio?.location || "";
-  const bio = portfolio?.bio || "";
+  // const bio = portfolio?.bio || "";
   const skills = portfolio?.skills || [];
   const projects = portfolio?.projects || [];
   const languages = portfolio?.languages || [];
