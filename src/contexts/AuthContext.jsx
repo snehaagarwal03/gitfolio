@@ -30,11 +30,11 @@ export function AuthProvider({ children }) {
   });
 
   useEffect(() => {
+    // Set up auth state listener immediately
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
 
       if (currentUser) {
-        // Determine the auth provider from providerData
         const providerData = currentUser.providerData;
         if (providerData.length > 0) {
           const providerId = providerData[0].providerId;
@@ -55,19 +55,20 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    // Check for redirect result (OAuth callback after redirect flow)
-    getRedirectResult(auth).then((result) => {
-      if (result) {
-        // Extract GitHub access token if available
-        const credential = result._tokenResponse;
-        if (credential?.oauthAccessToken) {
-          setGithubAccessToken(credential.oauthAccessToken);
-          sessionStorage.setItem("githubAccessToken", credential.oauthAccessToken);
+    // Handle redirect result separately to extract GitHub token
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          const credential = result._tokenResponse;
+          if (credential?.oauthAccessToken) {
+            setGithubAccessToken(credential.oauthAccessToken);
+            sessionStorage.setItem("githubAccessToken", credential.oauthAccessToken);
+          }
         }
-      }
-    }).catch((error) => {
-      console.error("Redirect result error:", error);
-    });
+      })
+      .catch((error) => {
+        console.error("Redirect result error:", error);
+      });
 
     return unsubscribe;
   }, []);

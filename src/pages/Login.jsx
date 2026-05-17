@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaGoogle, FaGithub, FaEnvelope, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
@@ -15,16 +15,9 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { loginWithGoogle, loginWithGithub, loginWithEmail, signupWithEmail, user } =
+  const { loginWithGoogle, loginWithGithub, loginWithEmail, signupWithEmail } =
     useAuth();
   const navigate = useNavigate();
-
-  // Redirect to dashboard if already authenticated (after OAuth redirect callback)
-  useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate]);
 
   async function handleGoogleLogin() {
     try {
