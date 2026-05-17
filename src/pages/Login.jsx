@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaGoogle, FaGithub, FaEnvelope, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
@@ -15,18 +15,29 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { loginWithGoogle, loginWithGithub, loginWithEmail, signupWithEmail } =
+  const { loginWithGoogle, loginWithGithub, loginWithEmail, signupWithEmail, user } =
     useAuth();
   const navigate = useNavigate();
+
+  // Redirect to dashboard if already authenticated (after OAuth redirect callback)
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   async function handleGoogleLogin() {
     try {
       setError("");
       setLoading(true);
       await loginWithGoogle();
-      navigate("/dashboard");
+      // Redirect flow doesn't return here - user is redirected to OAuth provider
     } catch (err) {
-      setError(err.message);
+      if (err.code === "auth/popup-blocked") {
+        setError("Popup was blocked. Please allow popups for this site or try again.");
+      } else {
+        setError(err.message);
+      }
       setLoading(false);
     }
   }
@@ -36,9 +47,13 @@ export default function Login() {
       setError("");
       setLoading(true);
       await loginWithGithub();
-      navigate("/dashboard");
+      // Redirect flow doesn't return here - user is redirected to OAuth provider
     } catch (err) {
-      setError(err.message);
+      if (err.code === "auth/popup-blocked") {
+        setError("Popup was blocked. Please allow popups for this site or try again.");
+      } else {
+        setError(err.message);
+      }
       setLoading(false);
     }
   }

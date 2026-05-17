@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   onAuthStateChanged,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -54,28 +55,33 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
+    // Check for redirect result (OAuth callback after redirect flow)
+    getRedirectResult(auth).then((result) => {
+      if (result) {
+        // Extract GitHub access token if available
+        const credential = result._tokenResponse;
+        if (credential?.oauthAccessToken) {
+          setGithubAccessToken(credential.oauthAccessToken);
+          sessionStorage.setItem("githubAccessToken", credential.oauthAccessToken);
+        }
+      }
+    }).catch((error) => {
+      console.error("Redirect result error:", error);
+    });
+
     return unsubscribe;
   }, []);
 
   // Sign in with Google
   async function loginWithGoogle() {
-    const result = await signInWithPopup(auth, googleProvider);
-    setAuthProvider("google");
-    return result;
+    await signInWithRedirect(auth, googleProvider);
+    // After redirect, getRedirectResult in useEffect handles the result
   }
 
   // Sign in with GitHub
   async function loginWithGithub() {
-    const result = await signInWithPopup(auth, githubProvider);
-    // Extract GitHub access token from the credential
-    const credential = result._tokenResponse;
-    if (credential?.oauthAccessToken) {
-      setGithubAccessToken(credential.oauthAccessToken);
-      // Persist token in sessionStorage for page refreshes
-      sessionStorage.setItem("githubAccessToken", credential.oauthAccessToken);
-    }
-    setAuthProvider("github");
-    return result;
+    await signInWithRedirect(auth, githubProvider);
+    // After redirect, getRedirectResult in useEffect handles the result
   }
 
   // Sign in with Email/Password
