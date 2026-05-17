@@ -97,7 +97,7 @@ export default function Dashboard() {
       // Step 1: Fetch GitHub data in parallel
       setCurrentStep(0);
       const apiToken = await user.getIdToken();
-      const response = await fetch("/api/github/portfolio", {
+      const response = await fetch("/api/github", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

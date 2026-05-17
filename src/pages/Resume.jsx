@@ -73,7 +73,7 @@ export default function Resume() {
       const apiToken = await user.getIdToken();
       const username = portfolio.username;
 
-      const response = await fetch("/api/github/portfolio", {
+      const response = await fetch("/api/github", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

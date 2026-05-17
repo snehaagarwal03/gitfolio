@@ -12,7 +12,7 @@ async function callGroqAI(prompt) {
   }
 
   const idToken = await user.getIdToken();
-  const response = await fetch("/api/groq/generate", {
+  const response = await fetch("/api/groq", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
