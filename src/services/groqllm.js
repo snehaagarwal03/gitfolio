@@ -1,4 +1,4 @@
-const GROQ_API_KEY = import.meta.env.GROQ_API_KEY;
+import { auth } from "./firebase";
 
 /**
  * Call the Groq API with a prompt and get a text response.
@@ -6,27 +6,19 @@ const GROQ_API_KEY = import.meta.env.GROQ_API_KEY;
  * @returns {Promise<string>} The generated text response
  */
 async function callGroqAI(prompt) {
-  if (!GROQ_API_KEY) {
-    throw new Error("GROQ_API_KEY is not configured in environment variables.");
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("You must be signed in to use AI features.");
   }
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const idToken = await user.getIdToken();
+  const response = await fetch("/api/groq/generate", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${GROQ_API_KEY}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify({
-      model: "meta-llama/llama-4-scout-17b-16e-instruct",
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    })
+    body: JSON.stringify({ prompt }),
   });
 
   if (!response.ok) {
@@ -34,7 +26,7 @@ async function callGroqAI(prompt) {
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || "";
+  return data.content || "";
 }
 
 /**

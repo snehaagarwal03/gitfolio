@@ -13,14 +13,7 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import Navbar from "../components/common/Navbar";
-import {
-  fetchGitHubUser,
-  fetchGitHubRepos,
-  fetchProfileReadme,
-  calculateMostUsedLanguages,
-  fetchUserEvents,
-  calculateContributionActivity,
-} from "../services/github";
+import { calculateContributionActivity } from "../services/github";
 import {
   generateBio,
   generateProjectDescriptions,
@@ -36,7 +29,7 @@ const STEPS = [
 ];
 
 export default function Dashboard() {
-  const { user, isGithubAuth, githubAccessToken } = useAuth();
+  const { user, isGithubAuth } = useAuth();
   const [githubUsername, setGithubUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingPortfolio, setCheckingPortfolio] = useState(true);
@@ -103,19 +96,22 @@ export default function Dashboard() {
 
       // Step 1: Fetch GitHub data in parallel
       setCurrentStep(0);
-      const apiToken = githubAccessToken || import.meta.env.GITHUB_TOKEN || null;
-      const [profileData, repos, readmeContent, events] = await Promise.all([
-        fetchGitHubUser(username, apiToken),
-        fetchGitHubRepos(username, 30, apiToken),
-        fetchProfileReadme(username, apiToken),
-        fetchUserEvents(username, apiToken),
-      ]);
-
-      // Calculate languages and contributions
-      const [languages, contributionActivity] = await Promise.all([
-        calculateMostUsedLanguages(repos, apiToken),
-        Promise.resolve(calculateContributionActivity(events)),
-      ]);
+      const apiToken = await user.getIdToken();
+      const response = await fetch("/api/github/portfolio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiToken}`,
+        },
+        body: JSON.stringify({ username, perPage: 30 }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch GitHub data.");
+      }
+      const { profileData, repos, profileReadme, events, languages } = await response.json();
+      const readmeContent = profileReadme || null;
+      const contributionActivity = calculateContributionActivity(events);
 
       // Step 2: Process with Gemini AI in parallel
       setCurrentStep(1);

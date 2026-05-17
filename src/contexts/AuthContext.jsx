@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   onAuthStateChanged,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -24,13 +23,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authProvider, setAuthProvider] = useState(null); // "github" | "google" | "email"
-  const [githubAccessToken, setGithubAccessToken] = useState(() => {
-    // Restore token from sessionStorage on initial load
-    return sessionStorage.getItem("githubAccessToken") || null;
-  });
 
   useEffect(() => {
-    // Set up auth state listener immediately
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
 
@@ -48,41 +42,26 @@ export function AuthProvider({ children }) {
         }
       } else {
         setAuthProvider(null);
-        setGithubAccessToken(null);
-        sessionStorage.removeItem("githubAccessToken");
       }
 
       setLoading(false);
     });
-
-    // Handle redirect result separately to extract GitHub token
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          const credential = result._tokenResponse;
-          if (credential?.oauthAccessToken) {
-            setGithubAccessToken(credential.oauthAccessToken);
-            sessionStorage.setItem("githubAccessToken", credential.oauthAccessToken);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("Redirect result error:", error);
-      });
 
     return unsubscribe;
   }, []);
 
   // Sign in with Google
   async function loginWithGoogle() {
-    await signInWithRedirect(auth, googleProvider);
-    // After redirect, getRedirectResult in useEffect handles the result
+    const result = await signInWithPopup(auth, googleProvider);
+    setAuthProvider("google");
+    return result;
   }
 
   // Sign in with GitHub
   async function loginWithGithub() {
-    await signInWithRedirect(auth, githubProvider);
-    // After redirect, getRedirectResult in useEffect handles the result
+    const result = await signInWithPopup(auth, githubProvider);
+    setAuthProvider("github");
+    return result;
   }
 
   // Sign in with Email/Password
@@ -106,15 +85,12 @@ export function AuthProvider({ children }) {
     await signOut(auth);
     setUser(null);
     setAuthProvider(null);
-    setGithubAccessToken(null);
-    sessionStorage.removeItem("githubAccessToken");
   }
 
   const value = {
     user,
     loading,
     authProvider,
-    githubAccessToken,
     loginWithGoogle,
     loginWithGithub,
     loginWithEmail,

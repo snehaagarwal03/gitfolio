@@ -21,7 +21,6 @@ googleProvider.addScope("profile");
 googleProvider.addScope("email");
 
 export const githubProvider = new GithubAuthProvider();
-githubProvider.addScope("repo");
 githubProvider.addScope("user:email");
 
 export default app;

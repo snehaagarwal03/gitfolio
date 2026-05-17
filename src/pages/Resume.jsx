@@ -19,7 +19,6 @@ import Loader from "../components/common/Loader";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
 import { getPortfolio, updatePortfolio } from "../services/firestore";
-import { fetchGitHubRepos, fetchProfileReadme, fetchRepoReadme } from "../services/github";
 import { generateDetailedResumeData } from "../services/groqllm";
 import {
   Dialog,
@@ -31,7 +30,7 @@ import {
 import { Input } from "../components/ui/input";
 
 export default function Resume() {
-  const { user, githubAccessToken } = useAuth();
+  const { user } = useAuth();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generatingDetail, setGeneratingDetail] = useState(false);
@@ -71,25 +70,27 @@ export default function Resume() {
     if (!portfolio || !user) return;
     try {
       setGeneratingDetail(true);
-      const apiToken = githubAccessToken || import.meta.env.GITHUB_TOKEN || null;
+      const apiToken = await user.getIdToken();
       const username = portfolio.username;
-      
-      // Fetch profile README + top repos in parallel
-      const [repos, profileReadme] = await Promise.all([
-        fetchGitHubRepos(username, 20, apiToken),
-        fetchProfileReadme(username, apiToken)
-      ]);
-      
-      // For each top-5 repo, fetch its own README (in parallel, silent fail)
+
+      const response = await fetch("/api/github/portfolio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiToken}`,
+        },
+        body: JSON.stringify({ username, perPage: 20, includeRepoReadmes: true }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch GitHub data.");
+      }
+      const { repos, profileReadme } = await response.json();
+
       const topRepos = repos.slice(0, 5);
-      const repoReadmes = await Promise.all(
-        topRepos.map(r => fetchRepoReadme(r.owner?.login || username, r.name, apiToken))
-      );
-      
-      // Attach README content to each repo object
-      const enrichedRepos = topRepos.map((repo, i) => ({
+      const enrichedRepos = topRepos.map((repo) => ({
         ...repo,
-        readme: repoReadmes[i] || null,
+        readme: repo.readme || null,
       }));
       
       const detailedData = await generateDetailedResumeData(profileReadme, enrichedRepos);

@@ -24,7 +24,7 @@ export default function Login() {
       setError("");
       setLoading(true);
       await loginWithGoogle();
-      // Redirect flow doesn't return here - user is redirected to OAuth provider
+      navigate("/dashboard");
     } catch (err) {
       if (err.code === "auth/popup-blocked") {
         setError("Popup was blocked. Please allow popups for this site or try again.");
@@ -40,7 +40,7 @@ export default function Login() {
       setError("");
       setLoading(true);
       await loginWithGithub();
-      // Redirect flow doesn't return here - user is redirected to OAuth provider
+      navigate("/dashboard");
     } catch (err) {
       if (err.code === "auth/popup-blocked") {
         setError("Popup was blocked. Please allow popups for this site or try again.");
