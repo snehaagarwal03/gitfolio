@@ -17,9 +17,8 @@ function buildHeaders(token) {
   return headers;
 }
 
-/**
- * Handle rate limit errors with retry logic
- */
+// Handle rate limit errors with retry logic
+
 async function handleRateLimit(response, retryFn, maxRetries = 3) {
   if (response.status === 403) {
     const rateLimitRemaining = response.headers.get("X-RateLimit-Remaining");
@@ -39,9 +38,7 @@ async function handleRateLimit(response, retryFn, maxRetries = 3) {
   return response;
 }
 
-/**
- * Generic GraphQL Fetcher
- */
+// Generic GraphQL Fetcher
 async function fetchGraphQL(query, variables, token) {
   if (!token) throw new Error("GraphQL requires an authentication token");
   
@@ -66,9 +63,7 @@ async function fetchGraphQL(query, variables, token) {
   return result.data;
 }
 
-/**
- * Fetch a GitHub user's public profile.
- */
+// Fetch a GitHub user's public profile.
 export async function fetchGitHubUser(username, token = null) {
   try {
     // Attempt GraphQL first (requires token)
@@ -134,9 +129,7 @@ export async function fetchGitHubUser(username, token = null) {
   return response.json();
 }
 
-/**
- * Fetch a GitHub user's public repositories.
- */
+// Fetch a GitHub user's public repositories.
 export async function fetchGitHubRepos(username, perPage = 30, token = null) {
   try {
     if (token) {
@@ -194,9 +187,7 @@ export async function fetchGitHubRepos(username, perPage = 30, token = null) {
   return response.json();
 }
 
-/**
- * Fetch the content of a user's profile README.
- */
+// Fetch the content of a user's profile README.
 export async function fetchProfileReadme(username, token = null) {
   // Readme is often easier via REST raw content, but implementing graphql fallback or vice versa
   try {
@@ -255,9 +246,7 @@ export async function fetchRepoReadme(owner, repo, token = null) {
   }
 }
 
-/**
- * Fetch an Authenticated User (REST fallback wrapper)
- */
+// Fetch an Authenticated User (REST fallback wrapper)
 export async function fetchAuthenticatedUser(accessToken) {
   return fetchGitHubUser(null, accessToken).catch(async () => {
     const response = await fetch(`${GITHUB_API_BASE}/user`, { headers: buildHeaders(accessToken) });
@@ -266,9 +255,7 @@ export async function fetchAuthenticatedUser(accessToken) {
   });
 }
 
-/**
- * Fetch reps for Authenticated User
- */
+// Fetch reps for Authenticated User
 export async function fetchAuthenticatedRepos(accessToken, perPage = 30) {
   try {
     const query = `
@@ -315,18 +302,14 @@ export async function fetchAuthenticatedRepos(accessToken, perPage = 30) {
   }
 }
 
-/**
- * Check current GitHub API rate limit status.
- */
+// Check current GitHub API rate limit status.
 export async function checkRateLimit(token = null) {
   const response = await fetch(`${GITHUB_API_BASE}/rate_limit`, { headers: buildHeaders(token) });
   if (!response.ok) throw new Error("Failed to check rate limit.");
   return response.json();
 }
 
-/**
- * Fetch languages (GraphQL pulls these efficiently across all repos generally, but keeping REST structure)
- */
+// Fetch languages (GraphQL pulls these efficiently across all repos generally, but keeping REST structure)
 export async function fetchRepoLanguages(owner, repo, token = null) {
   try {
     const response = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/languages`, { headers: buildHeaders(token) });
@@ -337,9 +320,7 @@ export async function fetchRepoLanguages(owner, repo, token = null) {
   }
 }
 
-/**
- * Calculate most used languages across all repositories.
- */
+// Calculate most used languages across all repositories.
 export async function calculateMostUsedLanguages(repos, token = null) {
   try {
     if (token && repos.length > 0 && repos[0].owner?.login) {
@@ -410,10 +391,9 @@ export async function calculateMostUsedLanguages(repos, token = null) {
     .slice(0, 10);
 }
 
-/**
- * Fetch recent user events for legacy REST processing or use GraphQL.
- * Since we rewrite calculateContributionActivity to handle both, we'll return raw GraphQL or REST events here.
- */
+// Fetch recent user events for legacy REST processing or use GraphQL. 
+// Since we rewrite calculateContributionActivity to handle both, we'll return raw GraphQL or REST events here.
+
 export async function fetchUserEvents(username, token = null) {
   try {
     if (token) {
@@ -450,9 +430,7 @@ export async function fetchUserEvents(username, token = null) {
   }
 }
 
-/**
- * Calculate contribution activity from events or GraphQL payload.
- */
+// Calculate contribution activity from events or GraphQL payload.
 export function calculateContributionActivity(events) {
   // Handle GraphQL Payload specifically mapped from fetchUserEvents
   if (events && events._graphQL && events.data) {

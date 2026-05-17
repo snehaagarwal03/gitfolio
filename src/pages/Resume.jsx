@@ -71,7 +71,7 @@ export default function Resume() {
     if (!portfolio || !user) return;
     try {
       setGeneratingDetail(true);
-      const apiToken = githubAccessToken || import.meta.env.VITE_GITHUB_TOKEN || null;
+      const apiToken = githubAccessToken || import.meta.env.GITHUB_TOKEN || null;
       const username = portfolio.username;
       
       // Fetch profile README + top repos in parallel

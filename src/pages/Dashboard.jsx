@@ -103,7 +103,7 @@ export default function Dashboard() {
 
       // Step 1: Fetch GitHub data in parallel
       setCurrentStep(0);
-      const apiToken = githubAccessToken || import.meta.env.VITE_GITHUB_TOKEN || null;
+      const apiToken = githubAccessToken || import.meta.env.GITHUB_TOKEN || null;
       const [profileData, repos, readmeContent, events] = await Promise.all([
         fetchGitHubUser(username, apiToken),
         fetchGitHubRepos(username, 30, apiToken),
