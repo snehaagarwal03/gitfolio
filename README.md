@@ -37,7 +37,7 @@ A portfolio generator that creates beautiful, AI-enhanced developer portfolios f
 
 All API calls to GitHub and Groq are proxied through **serverless functions** to keep secrets server-side:
 
-```
+```bash
 ┌─────────────┐      ┌─────────────────┐      ┌──────────────┐
 │   Browser   │ ──▶  │  Vercel /api/*  │ ──▶  │  GitHub API  │
 │  (No keys)  │      │  (Secrets here) │      │  Groq API    │
@@ -107,6 +107,7 @@ npm run dev
 ```
 
 This runs:
+
 - **Vite dev server** on `http://localhost:5173`
 - **Express API server** on `http://localhost:3001`
 - Vite proxies `/api/*` requests to the Express server
@@ -115,7 +116,7 @@ This runs:
 
 ## Project Structure
 
-```
+```bash
 GitFolio/
 ├── api/                          # Vercel serverless functions
 │   ├── github.js                   # GitHub API proxy (public data only)
@@ -164,7 +165,7 @@ GitFolio/
 
 ## Firestore Security Rules
 
-```
+```bash
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -184,6 +185,7 @@ service cloud.firestore {
 ### Why Serverless Functions?
 
 Prevents API key exposure. Unlike client-side GitHub API calls, our serverless proxy:
+
 - Authenticates users via Firebase ID tokens
 - Rate-limits requests using the server-side PAT
 - Keeps `GITHUB_TOKEN` and `GROQ_API_KEY` out of browser bundles
@@ -191,6 +193,7 @@ Prevents API key exposure. Unlike client-side GitHub API calls, our serverless p
 ### Why Firebase Popup Auth?
 
 We use `signInWithPopup` instead of `signInWithRedirect` because:
+
 - **Redirect** requires Firebase Hosting to serve `__/auth/handler`
 - **Popup** works on any domain (Vercel, Netlify, localhost) without hosting setup
 - The popup briefly shows the Firebase auth domain (`*.firebaseapp.com`) — this is normal
@@ -198,6 +201,7 @@ We use `signInWithPopup` instead of `signInWithRedirect` because:
 ### GitHub OAuth Scopes
 
 We request **only** `user:email` scope:
+
 - No `repo` access (respects user privacy)
 - All GitHub data is fetched via PAT on the server (public endpoints only)
 - Users don't need to grant repository access
@@ -207,13 +211,16 @@ We request **only** `user:email` scope:
 ## Troubleshooting
 
 ### "Firebase App not authorized" on production
+
 - Add your Vercel domain to Firebase Auth authorized domains
 
 ### API returns 401 Unauthorized
+
 - Check that `FIREBASE_SERVICE_ACCOUNT_JSON` is set correctly in Vercel env vars
 - Verify the Firebase Admin SDK JSON is valid (download from Firebase Console → Project Settings → Service Accounts)
 
 ### GitHub API rate limits
+
 - The server-side PAT has its own rate limit (5000 req/hour)
 - If hit, the function will return 403; wait or use a different token
 
